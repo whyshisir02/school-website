@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 
-export const revalidate = 3600;
+// NOTE: revalidate lives in the page (src/app/(public)/page.tsx), not here —
+// exporting it from a component has no effect.
 
 const categoryColors: Record<string, string> = {
   EXAM: "bg-blue-100 text-blue-700",

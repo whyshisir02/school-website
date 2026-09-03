@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
-import { SCHOOL, IMAGES, STATS } from "@/lib/school";
+import { SCHOOL, HERO_SLIDES, STATS, CHAIRMAN } from "@/lib/school";
+import { STAFF, staffPhoto, staffInitials } from "@/lib/staff";
 import {
   FiBookOpen, FiMonitor, FiUsers, FiHeart, FiAward, FiMapPin,
   FiTruck, FiShield, FiGrid, FiArrowRight,
@@ -70,8 +71,8 @@ export default function AboutPage() {
         </div>
         <div className="relative h-[360px] overflow-hidden rounded-2xl shadow-lg">
           <Image
-            src={IMAGES.heroMain}
-            alt="School building"
+            src={HERO_SLIDES[0].src}
+            alt={HERO_SLIDES[0].alt}
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-cover"
@@ -159,30 +160,45 @@ export default function AboutPage() {
             every child deserves quality education regardless of background. We thank our
             parents and community for their continued trust.&rdquo;
           </blockquote>
-          <p className="mt-4 text-left font-heading font-bold text-navy">Mr. Krishna Bahadur Shrestha</p>
-          <p className="text-left text-sm text-slate-500">Chairman, School Management Committee</p>
+          <p className="mt-4 text-left font-heading font-bold text-navy">{CHAIRMAN.name || "School Management Committee"}</p>
+          <p className="text-left text-sm text-slate-500">{CHAIRMAN.title}</p>
         </div>
       </section>
 
-      {/* Faculty */}
+      {/* Faculty & staff — renders from src/lib/staff.ts; photos auto-detected from /public/images/staff/ */}
       <section className="container-page py-16">
-        <h2 className="text-3xl font-bold">Our Faculty</h2>
+        <h2 className="text-3xl font-bold">Our Faculty &amp; Staff</h2>
         <p className="mt-2 text-slate-600">Dedicated teachers guiding every classroom.</p>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {IMAGES.faculty.map((f) => (
-            <div key={f.name} className="rounded-xl bg-white p-6 text-center shadow-sm ring-1 ring-slate-100 transition hover:shadow-md">
-              <Image
-                src={`https://images.unsplash.com/${f.img}?w=300&q=70`}
-                alt={f.name}
-                width={120}
-                height={120}
-                loading="lazy"
-                className="mx-auto h-[120px] w-[120px] rounded-full object-cover ring-4 ring-gold/20"
-              />
-              <h3 className="mt-4 font-semibold">{f.name}</h3>
-              <p className="text-sm text-slate-500">{f.role}</p>
-            </div>
-          ))}
+          {STAFF.map((member) => {
+            const photo = staffPhoto(member.slug);
+            return (
+              <div key={member.slug} className="rounded-xl bg-white p-6 text-center shadow-sm ring-1 ring-slate-100 transition hover:shadow-md">
+                {photo ? (
+                  <Image
+                    src={photo}
+                    alt={member.name}
+                    width={120}
+                    height={120}
+                    loading="lazy"
+                    className="mx-auto h-[120px] w-[120px] rounded-full object-cover ring-4 ring-gold/20"
+                  />
+                ) : (
+                  <div
+                    aria-hidden="true"
+                    className="mx-auto flex h-[120px] w-[120px] items-center justify-center rounded-full bg-navy font-heading text-2xl font-bold text-gold ring-4 ring-gold/20"
+                  >
+                    {staffInitials(member.name, member.slug)}
+                  </div>
+                )}
+                <h3 className="mt-4 font-semibold">{member.name}</h3>
+                <p className="text-sm text-slate-500">
+                  {member.role}
+                  {member.subject ? ` · ${member.subject}` : ""}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </section>
 

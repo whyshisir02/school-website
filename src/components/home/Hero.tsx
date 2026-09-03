@@ -1,7 +1,7 @@
 import Link from "next/link";
-import Image from "next/image";
 import { FiArrowRight } from "react-icons/fi";
-import { STATS, SCHOOL, IMAGES } from "@/lib/school";
+import { STATS, SCHOOL, HERO_SLIDES } from "@/lib/school";
+import HeroSlideshow from "./HeroSlideshow";
 
 export default function Hero() {
   return (
@@ -9,8 +9,10 @@ export default function Hero() {
       <div className="container-page grid items-center gap-10 py-14 lg:h-[75vh] lg:grid-cols-[3fr_2fr] lg:py-0">
         {/* Left */}
         <div>
+          {/* Evergreen badge — no seasonal "admissions open" claim.
+              Admissions are handled via the Admission Inquiry button. */}
           <span className="inline-block rounded-full bg-gold/10 px-4 py-1.5 text-sm font-semibold text-gold-dark">
-            🎓 Admissions Open 2082
+            🎓 {SCHOOL.motto}
           </span>
           <h1 className="mt-5 text-4xl font-extrabold leading-tight sm:text-5xl">
             Nurturing Minds From <span className="text-gold">Nursery</span> to{" "}
@@ -38,31 +40,10 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Right — image collage */}
-        <div className="relative hidden h-full min-h-[420px] lg:block">
-          <Image
-            src={IMAGES.heroMain}
-            alt="School building"
-            fill
-            priority
-            sizes="(max-width: 1024px) 100vw, 40vw"
-            className="rounded-xl object-cover shadow-lg"
-          />
-          <Image
-            src={IMAGES.heroSmall1}
-            alt="Students in classroom"
-            width={220}
-            height={160}
-            className="absolute -bottom-6 -left-8 rounded-xl object-cover shadow-lg"
-          />
-          <Image
-            src={IMAGES.heroSmall2}
-            alt="School activity"
-            width={180}
-            height={130}
-            className="absolute -right-4 top-8 rounded-xl object-cover shadow-lg"
-          />
-          <div className="absolute bottom-16 right-6 rounded-xl bg-navy px-5 py-4 text-white shadow-xl">
+        {/* Right — crossfading slideshow (also shown on mobile) */}
+        <div className="relative h-[300px] sm:h-[380px] lg:h-full lg:min-h-[420px]">
+          <HeroSlideshow slides={HERO_SLIDES} />
+          <div className="absolute bottom-16 right-6 z-10 rounded-xl bg-navy px-5 py-4 text-white shadow-xl">
             <div className="font-heading text-2xl font-bold text-gold">N–10</div>
             <div className="text-xs">Nursery to Class 10</div>
           </div>

@@ -41,6 +41,14 @@ export default function ContactPage() {
             className="h-[400px] w-full rounded-xl border-0 shadow-sm"
             loading="lazy"
           />
+          <a
+            href={SCHOOL.mapLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-block rounded-full bg-gold/10 px-4 py-2 text-sm font-semibold text-gold-dark hover:bg-gold/20"
+          >
+            Open in Google Maps →
+          </a>
           <div className="mt-6 space-y-2 text-slate-700">
             <p><strong>📍 Address:</strong> {SCHOOL.address}</p>
             <p><strong>📞 Phone:</strong> <a href={`tel:${SCHOOL.phone}`} className="text-gold-dark hover:underline">{SCHOOL.phone}</a></p>

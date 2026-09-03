@@ -7,6 +7,9 @@ import GalleryPreview from "@/components/home/GalleryPreview";
 import ContactCTA from "@/components/home/ContactCTA";
 import { SchoolJsonLd } from "@/components/seo/SchoolJsonLd";
 
+// ISR: home refreshes at most hourly; admin saves also trigger revalidatePath("/")
+export const revalidate = 3600;
+
 export default function HomePage() {
   return (
     <>

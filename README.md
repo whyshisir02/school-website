@@ -32,6 +32,6 @@ npm run dev                 # http://localhost:3000
 
 ## Notes for Next Developer
 
-- Notices use ISR (`revalidate = 3600`) — new notices appear on home within an hour, or redeploy to force.
+- Notices use ISR — home (`src/app/(public)/page.tsx`) and `/notices` set `revalidate = 3600`; admin saves also call `revalidatePath` for instant updates.
 - Gallery images go to Cloudinary (`f_auto,q_auto`); URLs stored in Postgres.
 - Admin routes protected by `src/middleware.ts` via NextAuth JWT.

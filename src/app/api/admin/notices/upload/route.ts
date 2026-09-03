@@ -8,16 +8,30 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
 export async function POST(req: Request) {
-  await requireAdmin();
+  try {
+    await requireAdmin();
+  } catch {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const form = await req.formData();
   const file = form.get("file") as File | null;
 
   if (!file) {
     return NextResponse.json({ error: "file required" }, { status: 400 });
   }
-  if (file.size > 5 * 1024 * 1024) {
+  if (file.size > MAX_FILE_SIZE) {
     return NextResponse.json({ error: "Max file size is 5MB" }, { status: 400 });
+  }
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    return NextResponse.json(
+      { error: "Invalid file type. Use JPEG, PNG, or WebP." },
+      { status: 400 }
+    );
   }
 
   const buf = Buffer.from(await file.arrayBuffer());
