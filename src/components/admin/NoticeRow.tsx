@@ -4,9 +4,17 @@ import { useState, useTransition } from "react";
 import { deleteNotice, toggleNoticePublish } from "@/app/admin/(panel)/notices/actions";
 import { FiTrash2, FiEye, FiEyeOff, FiEdit2 } from "react-icons/fi";
 
+type EditableNotice = {
+  id: string;
+  title: string;
+  category: string;
+  isPublished: boolean;
+  content: string;
+};
+
 type Props = {
-  notice: { id: string; title: string; category: string; isPublished: boolean };
-  onEdit?: (notice: { id: string; title: string; category: string; isPublished: boolean }) => void;
+  notice: EditableNotice;
+  onEdit?: (notice: EditableNotice) => void;
 };
 
 export default function NoticeRow({ notice, onEdit }: Props) {

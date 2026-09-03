@@ -55,7 +55,7 @@ export default function Footer() {
             <li className="flex gap-2"><FiMapPin className="mt-0.5 shrink-0 text-gold" /> {SCHOOL.address}</li>
             <li><a href={`tel:${SCHOOL.phone}`} className="flex gap-2 hover:text-gold"><FiPhone className="mt-0.5 shrink-0 text-gold" /> {SCHOOL.phone}</a></li>
             <li><a href={`mailto:${SCHOOL.email}`} className="flex gap-2 hover:text-gold"><FiMail className="mt-0.5 shrink-0 text-gold" /> {SCHOOL.email}</a></li>
-            <li><a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="text-gold hover:underline">View on Map →</a></li>
+            <li><a href={SCHOOL.mapLink} target="_blank" rel="noopener noreferrer" className="text-gold hover:underline">View on Map →</a></li>
           </ul>
         </div>
 

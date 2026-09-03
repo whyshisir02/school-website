@@ -2,7 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/db";
 
-export const revalidate = 3600;
+// NOTE: revalidate lives in the page (src/app/(public)/page.tsx), not here —
+// exporting it from a component has no effect.
 
 export default async function GalleryPreview() {
   const images = await prisma.galleryImage.findMany({

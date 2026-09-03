@@ -12,6 +12,12 @@ export function SchoolJsonLd() {
       streetAddress: SCHOOL.address,
       addressCountry: "NP",
     },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: 26.6528334,
+      longitude: 87.4653822,
+    },
+    hasMap: SCHOOL.mapLink,
     telephone: SCHOOL.phone,
     email: SCHOOL.email,
     sameAs: [SCHOOL.facebook],
