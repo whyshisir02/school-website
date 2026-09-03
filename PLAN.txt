@@ -1,0 +1,170 @@
+================================================================
+SCHOOL WEBSITE - COMPLETE PLAN
+Nepal Based School | Nursery to Class 10 | Next.js
+Prepared for: Alumnus Contribution Project
+Date: 2026-08-22
+================================================================
+
+1. PROJECT OVERVIEW
+-------------------
+Goal: Marketing showcase site to increase visibility/SEO + Admin panel for school to self-manage content.
+Type: Nursery to Class 10 School, Nepal.
+Stack: Next.js (App Router) for SEO.
+Contributor Model: Alumnus builds and donates, school maintains notices/gallery via admin.
+V1 Scope: Marketing + Admin (Notices, Gallery).
+Out of Scope V1: Student login, LMS, online fees, attendance, admission portal.
+
+2. INFORMATION ARCHITECTURE
+---------------------------
+Public Pages:
+- / (Home)
+- /about (History, Vision/Mission, Principal/Chairman message, Faculty)
+- /academics (Nursery/KG, Primary 1-5, Secondary 6-10, Facilities, Timing)
+- /notices (Listing) + /notices/[slug] (Detail - SEO critical)
+- /gallery (Albums: Events, Sports, Festivals)
+- /contact (Form + Map + Address/Phone/Email)
+- Global: Navbar (sticky) + Footer + Top Bar
+
+Admin Pages (Protected):
+- /admin/login
+- /admin/dashboard
+- /admin/notices (CRUD, Publish/Draft)
+- /admin/gallery (Upload multi, Albums, Delete/Reorder)
+- /admin/settings (School info, hero images)
+
+3. DESIGN SYSTEM (TO LOCK FIRST)
+--------------------------------
+Option 1 - Trust & Academic (RECOMMENDED): Primary Navy #0F2A44, Accent Gold #C5A021, Bg Off-White #F8FAFC, Text Slate-800.
+Option 2 - Vibrant & Youthful: Royal Blue #1E40AF + Orange #F59E0B.
+Typography: Poppins/Inter for headings + Noto Sans Devanagari for Nepali.
+Components: rounded-xl cards, shadow-sm, rounded-full buttons, aspect-[16/9] images.
+Decision Needed: Match primary to logo colors. Provide logo if available.
+
+4. NAVBAR (GLOBAL, STICKY h-20 -> h-16 on scroll)
+-------------------------------------------------
+Desktop (>1024px):
+  [Logo + School Name 2 lines] | [Home | About | Academics | Notices* | Gallery | Contact] | [Admission Inquiry Btn - Gold filled rounded-full]
+  Top Thin Bar (h-8 bg-navy #0F2A44): Phone | Email | Facebook Icon on right.
+  Notices has NEW red dot if notice within 7 days + badge count.
+  Active link: border-b-2 border-gold #C5A021, hover text-navy, white bg shadow-sm, sticky top-0 z-50.
+
+Mobile (<1024px):
+  Logo left, Hamburger right. Slide-in Drawer from right with flat links + Top bar info in drawer footer. No dropdown.
+
+5. FOOTER (GLOBAL, bg #0F2A44 text-slate-300)
+---------------------------------------------
+4 Columns Desktop / Stacked Mobile:
+Col1: Logo+Name | 2-line about | Facebook/YouTube icons
+Col2: Quick Links: Home, About, Academics, Notices, Gallery
+Col3: Contact: Address with map pin, Phone click-to-call, Email, Map link
+Col4: School Hours Sun-Fri 10-4 | Embedded small Google Map 150px height
+Bottom Bar: Copyright 2026 School Name | Developed with heart by Alumnus Name | border-t border-slate-700
+
+6. HOME PAGE - SECTION ORDER (Top to Bottom)
+--------------------------------------------
+1. Hero h-[75vh]:
+   Left 60%: Badge "Admissions Open 2082" + H1 "Nurturing Minds From Nursery to Class 10" + Subtitle 1 line + 2 CTAs [Explore Academics (Primary)] [View Notices (Outline)] + Trust stats row (25+ Years | 1000+ Students | 30+ Teachers).
+   Right 40%: Image collage (1 large + 2 small overlapping) rounded corners + floating card "100% SEE Pass". Alternative: Auto-play slider with 3 hero images + dots.
+
+2. Notice Ticker/Marquee: bg-gold #C5A021 thin strip, scrolling latest 3 notices "● SEE Result Published...", pause on hover, links to /notices. Expected by Nepali parents.
+
+3. Principal/Chairman Message: 2-column, Left circular image 200x200, Right quote "..." + Name/Title + Read More -> About. Background bg-slate-50.
+
+4. Why Choose Us (Academics Preview): 3-4 cards grid: [Nursery-KG] [Primary 1-5] [Secondary 6-10] [Facilities: Library, Lab, Sports] - Icon top, title, 1 line desc, Learn More link. Hover lift.
+
+5. Latest Notices: Header "Latest News & Notices + View All ->" + 3-card grid: Card = Date Badge (day/month) + Category Tag + Title (2 lines) + Excerpt 2 lines + Read More. bg-white border.
+
+6. Gallery Preview: Header + Filter pills [All | Events | Sports] + 6-image masonry grid 3x2, hover zoom, View Full Gallery -> button.
+
+7. Stats Banner: bg-navy 4 columns: 25+ Years, 1200+ Students, 35+ Teachers, 100% Results (large numbers text-gold).
+
+8. Contact CTA: bg-slate-50 2-col: Left Form Name/Phone/Message + Send, Right Map embed 400px + address/phone.
+
+7. INNER PAGES (Same Header/Footer)
+-----------------------------------
+About (/about): Small hero h-40 bg-navy (Title + Breadcrumb) -> Story Timeline (Est. 20XX) -> Vision/Mission 2 cards -> Faculty Grid 4x (Photo, Name, Subject) -> Chairman message full page.
+Academics (/academics): Tabs Nursery | Primary | Secondary (Class list, Subjects, Timing, Admission criteria) + Facilities icon grid 6 items.
+Notices (/notices): Left 70% List (10/pagination) + Search + Category filter All | Exam | Holiday | Event. Right 30% Sidebar sticky (Latest 5 + Academic Calendar PDF + FB Embed). Detail /notices/[slug]: Title + Meta (date, category) + Prose content + Share + Prev/Next + PDF attachment.
+Gallery (/gallery): Album filter pills top + Grid 3 cols -> Lightbox on click (next/prev, caption).
+Contact (/contact): Split Form left / Info+Map right + validation + success toast.
+
+8. TECH STACK
+-------------
+Framework: Next.js 15 App Router + TypeScript + Tailwind CSS + shadcn/ui
+Database: PostgreSQL (Neon/Supabase free tier) + Prisma ORM
+Auth: NextAuth.js Credentials (single admin, bcrypt) - middleware protected routes
+Images: Cloudinary (Recommended - free 25GB, CDN, f_auto,q_auto) OR Supabase Storage + next/image
+Deployment: Vercel (Hobby free, global CDN) + Custom Domain (.com.np / .edu.np / .com)
+Email: Resend / Nodemailer for contact form
+SEO: next/metadata, sitemap.ts, robots.ts, Schema.org EducationalOrganization JSON-LD, OG images
+
+Data Model (Prisma):
+  Notice { id, title, slug, content (RichText), category(Exam/Holiday/Event), isPublished, publishedAt, createdAt }
+  GalleryAlbum { id, title, coverImage }
+  GalleryImage { id, albumId, url, publicId, caption }
+  User { id, email, passwordHash, role }
+  Settings { schoolName, address, phone, email, mapLink }
+
+9. KEY FEATURES DETAIL
+----------------------
+Notices: Rich Text Editor (TipTap/TinyMCE) supports Nepali Unicode + PDF attachment. Public paginated list, filter by category, search, Latest Notice marquee on Home. Each notice is static page /notices/slug with ISR revalidate 3600.
+Gallery: Admin drag-drop multi-upload, client-side compress, store URL in DB. Public grid + Lightbox + Albums + Pagination 20/page + lazy load.
+Performance for Nepal (slow network): next/image + Cloudinary f_auto,q_auto, lazy load gallery, ISR for notices.
+
+10. CONTENT REQUIRED FROM SCHOOL (BLOCKER - Collect Before Build)
+-----------------------------------------------------------------
+- Logo SVG/PNG high-res, official school name EN/NP, motto, establishment year
+- Principal/Chairman photo + message, faculty photos/names, 10-20 high quality school building/activity photos
+- Exact classes, subjects, facilities list, history paragraph
+- Contact: Phone, Email, Full Address, Google Map link, Facebook page
+- 3-5 sample old notices as content
+- Language Decision: English only or Nepali/English toggle? (Recommend English only for V1, Nepali support for notices content via Unicode)
+
+11. HOSTING & DOMAIN
+--------------------
+Domain: Check schoolname.edu.np via Mercantile / schoolname.com.np (free in Nepal with docs) else .com on Namecheap (~$12/yr). You will donate.
+Hosting: Vercel Free sufficient for school traffic (100k visits/month). DB: Neon Free (0.5GB). Cloudinary Free. Total cost V1 = ~$0-15/year (domain only).
+Setup: GitHub -> Vercel -> Custom Domain + SSL auto.
+
+12. SEO & VISIBILITY PLAN (Your Goal)
+-------------------------------------
+Technical: Semantic HTML, fast Core Web Vitals, sitemap submission to Google Search Console + Bing
+Content SEO: Title "School Name | Best School in [City], Nepal | Nursery to 10", Meta descriptions, H1 per page, alt tags
+Local SEO: Google Business Profile, Schema.org EducationalOrganization with address/geo, embed map
+Social: Open Graph + Facebook share preview
+
+13. RESPONSIVE & UX RULES
+-------------------------
+Mobile-first: Grids 1 col -> 2 col tablet -> 3/4 col desktop. Navbar drawer, footer stacked, hero stacked text top/image bottom. next/image priority for hero, loading=lazy for gallery. Nepali Ready with Unicode.
+
+14. IMPLEMENTATION PHASES (2-3 weeks part-time)
+-----------------------------------------------
+Phase 0 Discovery (2-3 days): Collect content above, confirm design inspiration (2-3 refs), finalize domain.
+Phase 1 Setup (1 day): create-next-app, Tailwind, Prisma, Supabase/Neon, Cloudinary, Auth boilerplate.
+Phase 2 Public UI (5-7 days): Build Navbar/Footer + Home sections + Inner pages + Responsive + SEO (components/home/Hero, NoticeTicker, etc.)
+Phase 3 Admin (4-5 days): Auth, Notices CRUD, Gallery upload, middleware protection, shared PageHeader component.
+Phase 4 Polish & Deploy (2 days): Performance audit Lighthouse, seed real data, deploy Vercel, connect domain, submit to Google.
+Phase 5 Handover: 1-page manual + Loom video for teacher + GitHub access.
+
+15. RISKS & MITIGATIONS
+-----------------------
+- Large original photos uploaded by admin -> Client compress + Cloudinary auto-compress + 5MB/file limit
+- School staff not tech-savvy -> Keep admin UI dead simple, EN/NP labels
+- You leaving after handover -> Leave code on school GitHub + simple README for next developer
+
+16. DECISIONS NEEDED BEFORE BUILD
+---------------------------------
+1. Do you have content/photos or need to schedule visit to collect?
+2. Domain name finalized? Do you own it?
+3. Language: English only for V1? (Recommended)
+4. Single Admin account enough or need Editor role for teacher?
+5. Hero: Collage (modern) vs Slider (traditional) - preference?
+6. Logo colors to finalize palette? Send logo.
+
+17. VERIFICATION PLAN
+---------------------
+- Lighthouse >90, notice create -> appears on home in <1min (ISR), image upload on slow 3G, Google indexes site:domain, mobile drawer works, auth protection.
+
+================================================================
+NEXT STEP: Approve design system + answer 6 decisions -> I will scaffold project in this folder
+================================================================
