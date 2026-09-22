@@ -6,7 +6,7 @@ import { SCHOOL, HERO_SLIDES, STATS, CHAIRMAN } from "@/lib/school";
 import { STAFF, staffPhoto, staffInitials } from "@/lib/staff";
 import {
   FiBookOpen, FiMonitor, FiUsers, FiHeart, FiAward, FiMapPin,
-  FiTruck, FiShield, FiGrid, FiArrowRight,
+  FiTruck, FiShield, FiGrid, FiArrowRight, FiTarget, FiCompass,
 } from "react-icons/fi";
 import { TbFlask } from "react-icons/tb";
 
@@ -101,14 +101,18 @@ export default function AboutPage() {
       {/* Vision / Mission */}
       <section className="container-page grid gap-6 py-16 md:grid-cols-2">
         <div className="rounded-xl border-l-4 border-gold bg-white p-8 shadow-sm">
-          <h3 className="text-xl font-bold">🎯 Our Vision</h3>
+          <h3 className="flex items-center gap-2 text-xl font-bold">
+            <FiTarget className="text-gold-dark" /> Our Vision
+          </h3>
           <p className="mt-3 leading-relaxed text-slate-600">
             To be the leading community school in Morang, producing responsible,
             confident and skilled citizens of tomorrow.
           </p>
         </div>
         <div className="rounded-xl border-l-4 border-navy bg-white p-8 shadow-sm">
-          <h3 className="text-xl font-bold">🚀 Our Mission</h3>
+          <h3 className="flex items-center gap-2 text-xl font-bold">
+            <FiCompass className="text-navy" /> Our Mission
+          </h3>
           <p className="mt-3 leading-relaxed text-slate-600">
             To provide quality, affordable English-medium education that nurtures
             academic excellence, character and creativity in every child.

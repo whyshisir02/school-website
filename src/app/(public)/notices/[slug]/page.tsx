@@ -58,7 +58,9 @@ export default async function NoticeDetailPage({
 
   return (
     <>
-      <PageHeader title="Notice" breadcrumb={`Notices / ${notice.category}`} />
+      <div className="print:hidden">
+        <PageHeader title="Notice" breadcrumb={`Notices / ${notice.category}`} />
+      </div>
 
       {/* Print button (hidden when printing) */}
       <div className="container-page max-w-3xl pt-6 print:hidden">

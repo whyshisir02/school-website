@@ -18,6 +18,16 @@ export const SCHOOL = {
     "https://www.google.com/maps?q=26.6528334,87.4653822&hl=en&z=17&output=embed",
 } as const;
 
+// Current Nepali (Bikram Sambat) academic year, derived from today's date
+// rather than hardcoded — a literal "2082" silently goes stale every Baisakh.
+// Baisakh 1 falls around April 13–14, so an English year Y is BS (Y + 57) from
+// mid-April onward and BS (Y + 56) before that.
+export function currentAcademicYearBS(): number {
+  const now = new Date();
+  const baisakhStart = new Date(now.getFullYear(), 3, 14); // ~April 14
+  return now.getFullYear() + (now >= baisakhStart ? 57 : 56);
+}
+
 // ⚠️ PLACEHOLDER VALUES — NOT VERIFIED BY THE SCHOOL.
 // Replace with real figures once confirmed. Do not publish as-is.
 export const STATS = [

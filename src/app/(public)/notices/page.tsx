@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { FiFileText } from "react-icons/fi";
 import { prisma } from "@/lib/db";
 import PageHeader from "@/components/PageHeader";
 
@@ -147,9 +148,11 @@ export default async function NoticesPage({
           </div>
           <div className="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
             <h3 className="font-heading font-bold">Academic Calendar</h3>
-            <a href="#" className="mt-3 inline-block rounded-full bg-gold/10 px-4 py-2 text-sm font-semibold text-gold-dark">
-              📄 Download PDF (2082)
-            </a>
+            {/* TODO(school): once the real 2082 calendar PDF exists, drop it in
+                /public/documents/ and swap this for a working download link. */}
+            <span className="mt-3 inline-flex cursor-not-allowed items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-400">
+              <FiFileText size={14} /> Calendar Coming Soon
+            </span>
           </div>
         </aside>
       </div>

@@ -4,7 +4,7 @@ import { SCHOOL } from "@/lib/school";
 
 export default function TopBar() {
   return (
-    <div className="bg-navy text-white">
+    <div className="bg-navy text-white print:hidden">
       <div className="container-page flex h-8 items-center justify-between text-xs">
         <div className="flex items-center gap-4">
           <a href={`tel:${SCHOOL.phone}`} className="flex items-center gap-1.5 hover:text-gold">

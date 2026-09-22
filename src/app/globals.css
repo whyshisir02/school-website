@@ -11,6 +11,9 @@
 
 html {
   scroll-behavior: smooth;
+  /* Offsets #anchor jumps (e.g. /academics#nursery) so the target isn't
+     hidden under the sticky navbar (h-20, or h-16 once scrolled). */
+  scroll-padding-top: 96px;
 }
 
 body {
@@ -28,7 +31,59 @@ h1, h2, h3, h4 {
   .btn-outline {
     @apply inline-flex items-center gap-2 rounded-full border-2 border-navy px-6 py-3 font-semibold text-navy transition hover:bg-navy hover:text-white;
   }
+  .btn-outline-light {
+    @apply inline-flex items-center gap-2 rounded-full border-2 border-white/80 px-6 py-3 font-semibold text-white transition hover:bg-white hover:text-navy;
+  }
+  /* Hero gradient overlay: near-solid protection behind the text zone
+     (left ~60% on desktop), fading to fully transparent so the photo stays
+     clean on the right. On mobile the text spans the full width, so the
+     gradient flips vertical - darkest at the top where the text stacks. */
+  .hero-overlay {
+    background: linear-gradient(
+      180deg,
+      rgba(15, 42, 68, 0.92) 0%,
+      rgba(15, 42, 68, 0.75) 55%,
+      rgba(15, 42, 68, 0.45) 100%
+    );
+  }
+  @media (min-width: 768px) {
+    .hero-overlay {
+      background: linear-gradient(
+        to right,
+        rgba(15, 42, 68, 0.97) 0%,
+        rgba(15, 42, 68, 0.85) 38%,
+        rgba(15, 42, 68, 0) 62%
+      );
+    }
+  }
   .container-page {
     @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+}
+
+/* Print / Save-as-PDF: the site chrome (TopBar, Navbar, Footer, PageHeader)
+   is already hidden via `print:hidden`. This narrows the page to a clean sheet
+   and forces the letterhead's coloured text (amber title, red heading, green
+   address, blue footer bar) to render — browsers strip backgrounds and colours
+   from print by default, so without this the letterhead prints as flat black. */
+@media print {
+  @page {
+    margin: 14mm;
+  }
+  html {
+    scroll-padding-top: 0;
+  }
+  body {
+    background: #fff;
+  }
+  /* Widen the notice sheet to the full printable page. */
+  .container-page {
+    max-width: none;
+    padding: 0;
+  }
+  /* Keep every colour and background exactly as designed. */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }

@@ -8,11 +8,20 @@ import type { HeroSlide } from "@/lib/school";
 const AUTOPLAY_MS = 5000;
 
 /**
- * Crossfading hero slideshow. Receives slides as props from the server
+ * Crossfading slideshow. Receives slides as props from the server
  * component (Hero.tsx) so the slide list stays in src/lib/school.ts —
  * add/remove lines there, this component adapts automatically.
+ *
+ * background=true renders edge-to-edge behind the hero content
+ * (no rounding/shadow, dots bottom-right, mobile bottom gradient).
  */
-export default function HeroSlideshow({ slides }: { slides: HeroSlide[] }) {
+export default function HeroSlideshow({
+  slides,
+  background = false,
+}: {
+  slides: HeroSlide[];
+  background?: boolean;
+}) {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const count = slides.length;
@@ -34,7 +43,9 @@ export default function HeroSlideshow({ slides }: { slides: HeroSlide[] }) {
 
   return (
     <div
-      className="relative h-full w-full overflow-hidden rounded-xl shadow-lg"
+      className={`absolute inset-0 overflow-hidden ${
+        background ? "" : "relative h-full w-full rounded-xl shadow-lg"
+      }`}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
@@ -54,12 +65,20 @@ export default function HeroSlideshow({ slides }: { slides: HeroSlide[] }) {
           alt={slide.alt}
           fill
           priority={i === 0}
-          sizes="(max-width: 1024px) 100vw, 40vw"
+          sizes={background ? "100vw" : "(max-width: 1024px) 100vw, 40vw"}
           className={`object-cover transition-opacity duration-700 ${
             i === index ? "opacity-100" : "opacity-0"
           }`}
         />
       ))}
+
+      {/* Mobile: darken bottom so dots stay readable over bright photos */}
+      {background && (
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-navy/70 to-transparent"
+        />
+      )}
 
       {/* Arrows (desktop) */}
       {count > 1 && (
@@ -85,7 +104,11 @@ export default function HeroSlideshow({ slides }: { slides: HeroSlide[] }) {
 
       {/* Dots */}
       {count > 1 && (
-        <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-2">
+        <div
+          className={`absolute bottom-3 z-10 flex gap-2 ${
+            background ? "right-6" : "left-1/2 -translate-x-1/2"
+          }`}
+        >
           {slides.map((_, i) => (
             <button
               key={i}

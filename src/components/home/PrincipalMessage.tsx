@@ -11,37 +11,39 @@ export default function PrincipalMessage() {
   const initials = staffInitials(SCHOOL.principalName);
 
   return (
-    <section className="bg-slate-50">
-      <div className="container-page grid items-center gap-10 py-16 md:grid-cols-[auto_1fr]">
-        <div className="mx-auto md:mx-0">
-          {photo ? (
-            <Image
-              src={photo}
-              alt={`${SCHOOL.principalName}, Principal of ${SCHOOL.shortName}`}
-              width={200}
-              height={200}
-              className="h-[200px] w-[200px] rounded-full object-cover shadow-lg ring-4 ring-gold/40"
-            />
-          ) : (
-            <div
-              aria-hidden="true"
-              className="flex h-[200px] w-[200px] items-center justify-center rounded-full bg-navy font-heading text-5xl font-bold text-gold shadow-lg ring-4 ring-gold/40"
-            >
-              {initials}
-            </div>
-          )}
-        </div>
-        <div>
-          <blockquote className="text-lg italic leading-relaxed text-slate-700 md:text-xl">
-            &ldquo;Education is not just about books — it is about building character,
-            confidence, and curiosity. At Eastern View, every child is nurtured to
-            become their best self.&rdquo;
-          </blockquote>
-          <p className="mt-4 font-heading font-bold text-navy">{SCHOOL.principalName}</p>
-          <p className="text-sm text-slate-500">Principal, {SCHOOL.shortName}</p>
-          <Link href="/about" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-gold-dark hover:underline">
-            Read Full Message <FiArrowRight size={14} />
-          </Link>
+    <section className="bg-white">
+      <div className="container-page py-12 md:py-14">
+        <div className="mx-auto flex max-w-3xl flex-col items-center gap-8 text-center sm:flex-row sm:items-start sm:text-left md:gap-10">
+          <div className="shrink-0">
+            {photo ? (
+              <Image
+                src={photo}
+                alt={`${SCHOOL.principalName}, Principal of ${SCHOOL.shortName}`}
+                width={160}
+                height={160}
+                className="h-[160px] w-[160px] rounded-full object-cover shadow-lg ring-4 ring-gold/40"
+              />
+            ) : (
+              <div
+                aria-hidden="true"
+                className="flex h-[160px] w-[160px] items-center justify-center rounded-full bg-navy font-heading text-4xl font-bold text-gold shadow-lg ring-4 ring-gold/40"
+              >
+                {initials}
+              </div>
+            )}
+          </div>
+          <div>
+            <blockquote className="text-lg italic leading-relaxed text-slate-700 md:text-xl">
+              &ldquo;Education is not just about books — it is about building character,
+              confidence, and curiosity. At Eastern View, every child is nurtured to
+              become their best self.&rdquo;
+            </blockquote>
+            <p className="mt-4 font-heading font-bold text-navy">{SCHOOL.principalName}</p>
+            <p className="text-sm text-slate-500">Principal, {SCHOOL.shortName}</p>
+            <Link href="/about" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-gold-dark hover:underline">
+              Read Full Message <FiArrowRight size={14} />
+            </Link>
+          </div>
         </div>
       </div>
     </section>

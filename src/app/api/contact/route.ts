@@ -5,12 +5,22 @@ const MAX_NAME = 100;
 const MAX_PHONE = 20;
 const MAX_MESSAGE = 2000;
 
+const MIN_SUBMIT_MS = 1500; // real visitors take longer than this to fill the form
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const name = typeof body?.name === "string" ? body.name.trim() : "";
     const phone = typeof body?.phone === "string" ? body.phone.trim() : "";
     const message = typeof body?.message === "string" ? body.message.trim() : "";
+    const honeypot = typeof body?.website === "string" ? body.website.trim() : "";
+    const elapsedMs = typeof body?.elapsedMs === "number" ? body.elapsedMs : 0;
+
+    // Bot signals: pretend success without writing anything, so scripts
+    // don't get feedback that tells them what tripped the filter.
+    if (honeypot || elapsedMs < MIN_SUBMIT_MS) {
+      return NextResponse.json({ ok: true });
+    }
 
     if (!name || !phone || !message) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
