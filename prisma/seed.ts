@@ -5,7 +5,10 @@ const prisma = new PrismaClient();
 
 async function main() {
   // Admin user
-  const email = (process.env.ADMIN_EMAIL ?? "admin@easternview.edu.np").toLowerCase();
+  const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  if (!email) {
+    throw new Error("ADMIN_EMAIL is missing. Set it before seeding.");
+  }
 
   // Never seed with a known default password — force a real one in production.
   const password = process.env.ADMIN_PASSWORD;
