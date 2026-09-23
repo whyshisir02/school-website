@@ -42,7 +42,7 @@ export default function Navbar() {
 
   return (
     <header
-      className={`sticky top-0 z-50 bg-white transition-shadow ${
+      className={`sticky top-0 z-50 bg-white transition-shadow print:hidden ${
         scrolled ? "shadow-sm" : ""
       }`}
     >
@@ -85,8 +85,8 @@ export default function Navbar() {
               </Link>
             );
           })}
-          <Link href="/contact" className="btn-primary !px-5 !py-2.5 text-sm">
-            Admission Inquiry
+          <Link href="/contact#admission" className="btn-primary !px-5 !py-2.5 text-sm">
+            Admission Info
           </Link>
         </nav>
 
@@ -138,8 +138,8 @@ export default function Navbar() {
               </Link>
             );
           })}
-          <Link href="/contact" className="btn-primary mt-4 justify-center">
-            Admission Inquiry
+          <Link href="/contact#admission" className="btn-primary mt-4 justify-center">
+            Admission Info
           </Link>
         </nav>
         <div className="space-y-2 border-t p-5 text-xs text-slate-600">

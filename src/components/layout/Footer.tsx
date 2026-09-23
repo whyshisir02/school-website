@@ -13,7 +13,7 @@ const quickLinks = [
 
 export default function Footer() {
   return (
-    <footer className="bg-navy text-slate-300">
+    <footer className="bg-navy text-slate-300 print:hidden">
       <div className="container-page grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4">
         {/* Col 1 */}
         <div>
@@ -55,7 +55,7 @@ export default function Footer() {
             <li className="flex gap-2"><FiMapPin className="mt-0.5 shrink-0 text-gold" /> {SCHOOL.address}</li>
             <li><a href={`tel:${SCHOOL.phone}`} className="flex gap-2 hover:text-gold"><FiPhone className="mt-0.5 shrink-0 text-gold" /> {SCHOOL.phone}</a></li>
             <li><a href={`mailto:${SCHOOL.email}`} className="flex gap-2 hover:text-gold"><FiMail className="mt-0.5 shrink-0 text-gold" /> {SCHOOL.email}</a></li>
-            <li><a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="text-gold hover:underline">View on Map →</a></li>
+            <li><a href={SCHOOL.mapLink} target="_blank" rel="noopener noreferrer" className="text-gold hover:underline">View on Map →</a></li>
           </ul>
         </div>
 
@@ -77,7 +77,7 @@ export default function Footer() {
 
       <div className="border-t border-slate-700">
         <div className="container-page flex flex-col items-center justify-between gap-2 py-5 text-xs sm:flex-row">
-          <p>© 2026 {SCHOOL.name}. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {SCHOOL.name}. All rights reserved.</p>
           <p>Developed with ❤️ by an alumnus.</p>
         </div>
       </div>

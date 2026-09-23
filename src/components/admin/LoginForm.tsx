@@ -21,8 +21,13 @@ export default function LoginForm() {
       redirect: false,
     });
     setLoading(false);
-    if (res?.error) setError("Invalid email or password");
-    else router.push(params.get("callbackUrl") ?? "/admin/dashboard");
+    if (res?.error === "locked") {
+      setError("Too many failed attempts. Account locked for 15 minutes.");
+    } else if (res?.error) {
+      setError("Invalid email or password");
+    } else {
+      router.push(params.get("callbackUrl") ?? "/admin/dashboard");
+    }
   }
 
   return (

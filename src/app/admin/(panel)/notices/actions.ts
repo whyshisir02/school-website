@@ -4,12 +4,13 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { slugify } from "@/lib/slugify";
 import { requireAdmin } from "@/lib/auth-helpers";
+import { sanitizeNoticeHtml } from "@/lib/sanitize";
 
 export async function saveNotice(formData: FormData) {
   await requireAdmin();
   const id = String(formData.get("id") ?? "");
   const title = String(formData.get("title") ?? "").trim();
-  const content = String(formData.get("content") ?? "").trim();
+  const content = sanitizeNoticeHtml(String(formData.get("content") ?? "").trim());
   const category = String(formData.get("category") ?? "GENERAL");
   const isPublished = formData.get("isPublished") === "on";
 

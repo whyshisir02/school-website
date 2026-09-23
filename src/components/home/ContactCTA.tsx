@@ -25,7 +25,7 @@ export default function ContactCTA() {
   }
 
   return (
-    <section className="bg-slate-50 py-16">
+    <section className="bg-white py-16">
       <div className="container-page grid gap-10 lg:grid-cols-2">
         {/* Form */}
         <div>
