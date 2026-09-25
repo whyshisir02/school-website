@@ -10,7 +10,7 @@ export const SCHOOL = {
   phones: ["9762956732", "9804399428", "9842252002"], // from letterpad
   email: "easternviewenglishschool@gmail.com", // from letterpad
   regdNo: "53550/064/065", // COMP.REGD.NO from letterpad
-  principalName: "J.B. Magar", // confirmed by school
+  principalName: "Rajeen Magar", // confirmed by school
   facebook: "https://www.facebook.com/easternviewschool", // official school page
   // Real Google Maps place — Shree Eastern View English School, Belbari-10, Bhaunne, Morang
   mapLink: "https://maps.app.goo.gl/EjGu4gE6geNpHT5r9",

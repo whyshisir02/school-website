@@ -24,7 +24,7 @@ export type StaffMember = {
 };
 
 export const STAFF: StaffMember[] = [
-  { slug: "jb-magar", name: "J.B. Magar", role: "Principal" },
+  { slug: "rajeen-magar", name: "Rajeen Magar", role: "Principal" },
   // ── ⚠️ PLACEHOLDER STAFF — replace with real names/photos ──
   { slug: "staff-02", name: "Staff Name 02", role: "Vice Principal" },
   { slug: "staff-03", name: "Staff Name 03", role: "Academic Coordinator" },
