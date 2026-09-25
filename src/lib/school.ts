@@ -11,7 +11,7 @@ export const SCHOOL = {
   email: "easternviewenglishschool@gmail.com", // from letterpad
   regdNo: "53550/064/065", // COMP.REGD.NO from letterpad
   principalName: "J.B. Magar", // confirmed by school
-  facebook: "#", // TODO(you): real Facebook page URL
+  facebook: "https://www.facebook.com/easternviewschool", // official school page
   // Real Google Maps place — Shree Eastern View English School, Belbari-10, Bhaunne, Morang
   mapLink: "https://maps.app.goo.gl/EjGu4gE6geNpHT5r9",
   mapEmbed:
@@ -31,7 +31,7 @@ export function currentAcademicYearBS(): number {
 // ⚠️ PLACEHOLDER VALUES — NOT VERIFIED BY THE SCHOOL.
 // Replace with real figures once confirmed. Do not publish as-is.
 export const STATS = [
-  { value: "25+", label: "Years of Excellence" },
+  { value: "18+", label: "Years of Excellence" },
   { value: "1200+", label: "Students Enrolled" },
   { value: "35+", label: "Dedicated Teachers" },
   { value: "100%", label: "SEE Pass Rate" },
@@ -46,12 +46,26 @@ export const STATS = [
 export type HeroSlide = {
   src: string;
   alt: string;
+  /** CSS object-position for the cover crop (e.g. "center 58%"). Lets a slide
+   *  keep faces/subjects in view when the full-bleed hero crops it. */
+  objectPosition?: string;
 };
 
 export const HERO_SLIDES: HeroSlide[] = [
-  { src: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1200&q=75", alt: "School building" },
-  { src: "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1200&q=75", alt: "Students in classroom" },
-  { src: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=1200&q=75", alt: "School activity" },
+  {
+    src: "/images/hero/hero-1.jpg",
+    alt: "Students in traditional Nepali dress welcoming guests at Shree Eastern View English School",
+  },
+  {
+    src: "/images/hero/hero-2.jpg",
+    alt: "Young students in cultural attire during a school program",
+    objectPosition: "center 42%",
+  },
+  {
+    src: "/images/hero/hero-3.jpg",
+    alt: "Students and staff gathered in front of the school building",
+    objectPosition: "center 58%",
+  },
 ];
 
 // Chairman of the School Management Committee - confirm real name with school

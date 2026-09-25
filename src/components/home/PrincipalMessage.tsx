@@ -40,7 +40,7 @@ export default function PrincipalMessage() {
             </blockquote>
             <p className="mt-4 font-heading font-bold text-navy">{SCHOOL.principalName}</p>
             <p className="text-sm text-slate-500">Principal, {SCHOOL.shortName}</p>
-            <Link href="/about" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-gold-dark hover:underline">
+            <Link href="/about#principal-message" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-gold-dark hover:underline">
               Read Full Message <FiArrowRight size={14} />
             </Link>
           </div>

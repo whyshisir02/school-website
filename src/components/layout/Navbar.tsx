@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FiMenu, FiX, FiPhone, FiMail } from "react-icons/fi";
@@ -49,9 +50,14 @@ export default function Navbar() {
       <div className={`container-page flex items-center justify-between transition-all ${scrolled ? "h-16" : "h-20"}`}>
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-navy font-heading text-lg font-bold text-gold">
-            EV
-          </div>
+          <Image
+            src="/images/logo.png"
+            alt={`${SCHOOL.name} logo`}
+            width={48}
+            height={48}
+            priority
+            className="h-12 w-12 rounded-full object-contain"
+          />
           <div className="leading-tight">
             <div className="font-heading text-base font-bold text-navy sm:text-lg">
               Shree Eastern View
@@ -85,8 +91,8 @@ export default function Navbar() {
               </Link>
             );
           })}
-          <Link href="/contact#admission" className="btn-primary !px-5 !py-2.5 text-sm">
-            Admission Info
+          <Link href="/contact" className="btn-primary !px-5 !py-2.5 text-sm">
+            Get in Touch
           </Link>
         </nav>
 
@@ -138,8 +144,8 @@ export default function Navbar() {
               </Link>
             );
           })}
-          <Link href="/contact#admission" className="btn-primary mt-4 justify-center">
-            Admission Info
+          <Link href="/contact" className="btn-primary mt-4 justify-center">
+            Get in Touch
           </Link>
         </nav>
         <div className="space-y-2 border-t p-5 text-xs text-slate-600">

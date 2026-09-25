@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -32,6 +33,13 @@ export default function LoginForm() {
 
   return (
     <form onSubmit={onSubmit} className="w-full max-w-sm space-y-4 rounded-xl bg-white p-8 shadow-lg">
+      <Image
+        src="/images/logo.png"
+        alt="School logo"
+        width={64}
+        height={64}
+        className="mx-auto h-16 w-16 rounded-full object-contain"
+      />
       <h1 className="text-center text-2xl font-bold">Admin Login</h1>
       <input name="email" type="email" required placeholder="Email"
         className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-gold" />

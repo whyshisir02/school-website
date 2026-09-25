@@ -41,6 +41,11 @@ const facilities = [
 ];
 
 export default function AboutPage() {
+  // Same auto-detected photo as the home page: drop the real photo in at
+  // /public/images/staff/jb-magar.jpg and it replaces the initials avatar.
+  const principalPhoto = staffPhoto("jb-magar");
+  const principalInitials = staffInitials(SCHOOL.principalName);
+
   return (
     <>
       <PageHeader title="About Our School" breadcrumb="About" />
@@ -152,6 +157,62 @@ export default function AboutPage() {
               <p className="mt-2 text-sm leading-relaxed text-slate-600">{f.text}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Principal's message — the full letter. The home page shows a short
+          excerpt and its "Read Full Message" link scrolls straight here.
+          ⚠️ PLACEHOLDER LETTER — replace with the principal's actual message. */}
+      <section id="principal-message" className="scroll-mt-28 bg-white py-16">
+        <div className="container-page max-w-4xl">
+          <h2 className="text-3xl font-bold">Message from the Principal</h2>
+          <div className="mt-8 flex flex-col items-center gap-8 sm:flex-row sm:items-start sm:gap-10">
+            <div className="shrink-0 text-center">
+              {principalPhoto ? (
+                <Image
+                  src={principalPhoto}
+                  alt={`${SCHOOL.principalName}, Principal of ${SCHOOL.shortName}`}
+                  width={160}
+                  height={160}
+                  className="mx-auto h-[160px] w-[160px] rounded-full object-cover shadow-lg ring-4 ring-gold/40"
+                />
+              ) : (
+                <div
+                  aria-hidden="true"
+                  className="mx-auto flex h-[160px] w-[160px] items-center justify-center rounded-full bg-navy font-heading text-4xl font-bold text-gold shadow-lg ring-4 ring-gold/40"
+                >
+                  {principalInitials}
+                </div>
+              )}
+              <p className="mt-4 font-heading font-bold text-navy">{SCHOOL.principalName}</p>
+              <p className="text-sm text-slate-500">Principal, {SCHOOL.shortName}</p>
+            </div>
+            <div className="space-y-4 leading-relaxed text-slate-600">
+              <p>Dear parents, students and well-wishers,</p>
+              <p>
+                It is my privilege to welcome you to {SCHOOL.name}. Education is not just
+                about books — it is about building character, confidence and curiosity.
+                At Eastern View, every child is nurtured to become their best self.
+              </p>
+              <p>
+                Since our establishment in {SCHOOL.established} B.S., our teachers have
+                worked to give children from Nursery to Class 10 a strong foundation in
+                both English-medium academics and good values. We believe every child,
+                whatever their background, deserves the chance to learn, grow and dream
+                bigger.
+              </p>
+              <p>
+                We are grateful to the parents and the wider Belbari community for the
+                trust they place in us, and we remain committed to earning it every day.
+                I warmly invite you to visit our campus, meet our teachers and see the
+                caring learning environment we have built together.
+              </p>
+              <p className="font-heading font-semibold text-navy">
+                {SCHOOL.principalName}<br />
+                <span className="text-sm font-normal text-slate-500">Principal, {SCHOOL.name}</span>
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 

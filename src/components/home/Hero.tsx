@@ -26,15 +26,15 @@ export default function Hero() {
       <div className="container-page relative flex min-h-[75vh] items-center py-20">
         <div className="max-w-2xl">
           {/* Evergreen badge — no seasonal "admissions open" claim.
-              Admissions are handled via the Admission Info button. */}
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-gold/20 px-4 py-1.5 text-sm font-semibold text-gold-light ring-1 ring-gold/40">
+              Admission details live on the Contact page (Get in Touch button). */}
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-navy/70 px-4 py-1.5 text-sm font-semibold text-gold-light ring-1 ring-gold/50 backdrop-blur-sm">
             <FaGraduationCap size={14} /> {SCHOOL.motto}
           </span>
-          <h1 className="mt-5 text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
+          <h1 className="hero-text mt-5 text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
             Nurturing Minds From <span className="text-gold">Nursery</span> to{" "}
             <span className="text-gold">Class 10</span>
           </h1>
-          <p className="mt-4 text-lg text-slate-200">
+          <p className="hero-text mt-4 text-lg font-medium text-white">
             Quality English-medium education with experienced teachers, modern facilities,
             and a caring environment in the heart of {SCHOOL.location}.
           </p>
@@ -49,11 +49,11 @@ export default function Hero() {
           {/* Trust stats — inside the gradient zone so they never sit over
               bare photo. They repeat in the StatsBanner further down the
               page; that's intentional reinforcement, not duplication. */}
-          <div className="mt-10 flex flex-wrap gap-x-10 gap-y-4">
+          <div className="hero-text mt-10 flex flex-wrap gap-x-10 gap-y-4">
             {STATS.slice(0, 3).map((s) => (
               <div key={s.label}>
                 <div className="font-heading text-2xl font-bold text-gold">{s.value}</div>
-                <div className="text-xs font-medium uppercase tracking-wide text-slate-300">{s.label}</div>
+                <div className="text-xs font-medium uppercase tracking-wide text-slate-100">{s.label}</div>
               </div>
             ))}
           </div>

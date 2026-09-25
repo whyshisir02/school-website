@@ -2,6 +2,7 @@
 
 import { signOut } from "next-auth/react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { FiLogOut } from "react-icons/fi";
 
@@ -17,9 +18,26 @@ export default function AdminNav() {
   return (
     <header className="bg-navy text-white">
       <div className="container-page flex h-16 items-center justify-between">
-        <Link href="/admin/dashboard" className="font-heading font-bold">
-          EV Admin
-        </Link>
+        <div className="flex items-center gap-2">
+          {/* Logo → back to the public site home page (same tab). */}
+          <Link
+            href="/"
+            title="Go to the school website"
+            className="rounded-full transition hover:opacity-80"
+          >
+            <Image
+              src="/images/logo.png"
+              alt="Go to school website"
+              width={32}
+              height={32}
+              className="h-8 w-8 rounded-full bg-white object-contain p-0.5"
+            />
+          </Link>
+          {/* Wordmark → dashboard. */}
+          <Link href="/admin/dashboard" className="font-heading font-bold">
+            EV Admin
+          </Link>
+        </div>
         <nav className="flex items-center gap-1 sm:gap-4">
           {links.map((l) => (
             <Link

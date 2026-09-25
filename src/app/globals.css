@@ -34,27 +34,34 @@ h1, h2, h3, h4 {
   .btn-outline-light {
     @apply inline-flex items-center gap-2 rounded-full border-2 border-white/80 px-6 py-3 font-semibold text-white transition hover:bg-white hover:text-navy;
   }
-  /* Hero gradient overlay: near-solid protection behind the text zone
-     (left ~60% on desktop), fading to fully transparent so the photo stays
-     clean on the right. On mobile the text spans the full width, so the
-     gradient flips vertical - darkest at the top where the text stacks. */
+  /* Hero overlay: a light, near-even black scrim so the PHOTO stays visible
+     across the whole frame (not hidden behind a slab), while white text keeps
+     contrast via .hero-text shadows. Desktop leans only gently to the left
+     text column then settles on an even floor; mobile is essentially uniform
+     because the stacked text spans the full width. */
   .hero-overlay {
     background: linear-gradient(
       180deg,
-      rgba(15, 42, 68, 0.92) 0%,
-      rgba(15, 42, 68, 0.75) 55%,
-      rgba(15, 42, 68, 0.45) 100%
+      rgba(0, 0, 0, 0.46) 0%,
+      rgba(0, 0, 0, 0.4) 50%,
+      rgba(0, 0, 0, 0.46) 100%
     );
   }
   @media (min-width: 768px) {
     .hero-overlay {
       background: linear-gradient(
         to right,
-        rgba(15, 42, 68, 0.97) 0%,
-        rgba(15, 42, 68, 0.85) 38%,
-        rgba(15, 42, 68, 0) 62%
+        rgba(0, 0, 0, 0.62) 0%,
+        rgba(0, 0, 0, 0.4) 38%,
+        rgba(0, 0, 0, 0.28) 62%,
+        rgba(0, 0, 0, 0.28) 100%
       );
     }
+  }
+  /* Drop-shadow for hero text so it carries its own contrast over the lighter
+     overlay wherever the photo behind it is bright. */
+  .hero-text {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.55), 0 2px 18px rgba(0, 0, 0, 0.45);
   }
   .container-page {
     @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
@@ -68,7 +75,8 @@ h1, h2, h3, h4 {
    from print by default, so without this the letterhead prints as flat black. */
 @media print {
   @page {
-    margin: 14mm;
+    size: A4;
+    margin: 10mm;
   }
   html {
     scroll-padding-top: 0;
@@ -80,6 +88,22 @@ h1, h2, h3, h4 {
   .container-page {
     max-width: none;
     padding: 0;
+  }
+  /* Fill one A4 page without overflowing it. Printable height is
+     297 − 2×10 = 277mm; we sit a few mm under that (the red/blue frame borders
+     add ~5mm) so the browser never scales the page down to fit — which was
+     leaving a blank band at the bottom. The flex column then pushes the blue
+     footer bar to the bottom edge, matching the school's printed circulars.
+
+     `zoom` is 1 for normal notices (they already fit) but is set below 1 by
+     NoticePrintFit for an over-long message, shrinking the whole sheet so it
+     still lands on a single sheet of paper instead of spilling onto a second. */
+  .notice-sheet {
+    min-height: 268mm;
+    width: 100%;
+    box-shadow: none;
+    page-break-inside: avoid;
+    zoom: var(--print-zoom, 1);
   }
   /* Keep every colour and background exactly as designed. */
   * {

@@ -66,6 +66,7 @@ export default function HeroSlideshow({
           fill
           priority={i === 0}
           sizes={background ? "100vw" : "(max-width: 1024px) 100vw, 40vw"}
+          style={slide.objectPosition ? { objectPosition: slide.objectPosition } : undefined}
           className={`object-cover transition-opacity duration-700 ${
             i === index ? "opacity-100" : "opacity-0"
           }`}

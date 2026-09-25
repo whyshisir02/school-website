@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { FiMapPin, FiPhone, FiMail, FiClock } from "react-icons/fi";
 import { SiFacebook, SiYoutube } from "react-icons/si";
 import { SCHOOL } from "@/lib/school";
@@ -18,9 +19,13 @@ export default function Footer() {
         {/* Col 1 */}
         <div>
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 font-heading text-lg font-bold text-gold">
-              EV
-            </div>
+            <Image
+              src="/images/logo.png"
+              alt={`${SCHOOL.name} logo`}
+              width={48}
+              height={48}
+              className="h-12 w-12 rounded-full bg-white object-contain p-0.5"
+            />
             <div className="font-heading text-lg font-bold text-white">Shree Eastern View</div>
           </div>
           <p className="mt-4 text-sm leading-relaxed">
