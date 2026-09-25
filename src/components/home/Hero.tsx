@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { FiArrowRight } from "react-icons/fi";
 import { FaGraduationCap } from "react-icons/fa";
-import { STATS, SCHOOL, HERO_SLIDES } from "@/lib/school";
+import { SCHOOL } from "@/lib/school";
+import { getSiteSettings, getVisibleStats } from "@/lib/settings";
 import HeroSlideshow from "./HeroSlideshow";
 
 /**
@@ -11,11 +12,15 @@ import HeroSlideshow from "./HeroSlideshow";
  * RIGHT third of the frame. Photos that are too dark or busy also fight the
  * white text; bright, wide shots of the building / assembly work best.
  */
-export default function Hero() {
+export default async function Hero() {
+  const [stats, { heroSlides }] = await Promise.all([
+    getVisibleStats(),
+    getSiteSettings(),
+  ]);
   return (
     <section className="relative isolate overflow-hidden bg-navy">
-      {/* Full-bleed slideshow background */}
-      <HeroSlideshow slides={HERO_SLIDES} background />
+      {/* Full-bleed slideshow background (admin-editable at /admin/settings) */}
+      <HeroSlideshow slides={heroSlides} background />
 
       {/* Left-heavy navy gradient overlay — text side is darkest,
           photos stay visible on the right. Flips vertical on mobile
@@ -50,7 +55,7 @@ export default function Hero() {
               bare photo. They repeat in the StatsBanner further down the
               page; that's intentional reinforcement, not duplication. */}
           <div className="hero-text mt-10 flex flex-wrap gap-x-10 gap-y-4">
-            {STATS.slice(0, 3).map((s) => (
+            {stats.slice(0, 3).map((s) => (
               <div key={s.label}>
                 <div className="font-heading text-2xl font-bold text-gold">{s.value}</div>
                 <div className="text-xs font-medium uppercase tracking-wide text-slate-100">{s.label}</div>

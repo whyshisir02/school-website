@@ -10,10 +10,11 @@ const links = [
   { href: "/admin/dashboard", label: "Dashboard" },
   { href: "/admin/notices", label: "Notices" },
   { href: "/admin/gallery", label: "Gallery" },
-  { href: "/admin/inquiries", label: "Inquiries" },
+  { href: "/admin/inquiries", label: "Inquiries", showUnread: true },
+  { href: "/admin/settings", label: "Settings" },
 ];
 
-export default function AdminNav() {
+export default function AdminNav({ unreadCount = 0 }: { unreadCount?: number }) {
   const pathname = usePathname();
   return (
     <header className="bg-navy text-white">
@@ -43,11 +44,16 @@ export default function AdminNav() {
             <Link
               key={l.href}
               href={l.href}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium ${
+              className={`relative flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium ${
                 pathname.startsWith(l.href) ? "bg-gold text-white" : "hover:bg-white/10"
               }`}
             >
               {l.label}
+              {l.showUnread && unreadCount > 0 && (
+                <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                  {unreadCount}
+                </span>
+              )}
             </Link>
           ))}
           <button onClick={() => signOut({ callbackUrl: "/" })} className="flex items-center gap-1.5 text-sm hover:text-gold">

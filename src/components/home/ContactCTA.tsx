@@ -4,7 +4,22 @@ import { useState } from "react";
 import { FiSend, FiCheck } from "react-icons/fi";
 import { SCHOOL } from "@/lib/school";
 
-export default function ContactCTA() {
+/**
+ * Client component (holds the contact form state), so it can't read the DB
+ * itself — the server home page passes current contact info in as props.
+ * Falls back to school.ts defaults if rendered without them.
+ */
+export default function ContactCTA({
+  address = SCHOOL.address,
+  phone = SCHOOL.phone,
+  email = SCHOOL.email,
+  mapEmbed = SCHOOL.mapEmbed,
+}: {
+  address?: string;
+  phone?: string;
+  email?: string;
+  mapEmbed?: string;
+} = {}) {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -59,15 +74,15 @@ export default function ContactCTA() {
         {/* Map + info */}
         <div>
           <iframe
-            src={SCHOOL.mapEmbed}
+            src={mapEmbed}
             title="School map"
             className="h-[400px] w-full rounded-xl border-0 shadow-sm"
             loading="lazy"
           />
           <div className="mt-4 space-y-1 text-sm text-slate-700">
-            <p><strong>Address:</strong> {SCHOOL.address}</p>
-            <p><strong>Phone:</strong> {SCHOOL.phone}</p>
-            <p><strong>Email:</strong> {SCHOOL.email}</p>
+            <p><strong>Address:</strong> {address}</p>
+            <p><strong>Phone:</strong> {phone}</p>
+            <p><strong>Email:</strong> {email}</p>
           </div>
         </div>
       </div>

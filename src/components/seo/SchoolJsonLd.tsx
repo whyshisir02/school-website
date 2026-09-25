@@ -1,15 +1,17 @@
 import { SCHOOL } from "@/lib/school";
+import { getSiteSettings } from "@/lib/settings";
 
-export function SchoolJsonLd() {
+export async function SchoolJsonLd() {
+  const s = await getSiteSettings();
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
-    name: SCHOOL.name,
+    name: s.name,
     description:
       `Quality English-medium education from Nursery to Class 10 in ${SCHOOL.location}.`,
     address: {
       "@type": "PostalAddress",
-      streetAddress: SCHOOL.address,
+      streetAddress: s.address,
       addressCountry: "NP",
     },
     geo: {
@@ -17,9 +19,9 @@ export function SchoolJsonLd() {
       latitude: 26.6528334,
       longitude: 87.4653822,
     },
-    hasMap: SCHOOL.mapLink,
-    telephone: SCHOOL.phone,
-    email: SCHOOL.email,
+    hasMap: s.mapLink,
+    telephone: s.phone,
+    email: s.email,
     sameAs: [SCHOOL.facebook],
   };
   return (

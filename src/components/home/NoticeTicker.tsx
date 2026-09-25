@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 export default async function NoticeTicker() {
   const notices = await prisma.notice.findMany({
     where: { isPublished: true },
-    orderBy: { publishedAt: "desc" },
+    orderBy: { createdAt: "desc" },
     take: 3,
     select: { slug: true, title: true },
   });

@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
-import { SCHOOL, HERO_SLIDES, STATS, CHAIRMAN } from "@/lib/school";
+import { SCHOOL } from "@/lib/school";
+import { getVisibleStats, getSiteSettings } from "@/lib/settings";
 import { STAFF, staffPhoto, staffInitials } from "@/lib/staff";
 import {
   FiBookOpen, FiMonitor, FiUsers, FiHeart, FiAward, FiMapPin,
@@ -40,11 +41,22 @@ const facilities = [
   { icon: FiMapPin, title: "Accessible Location", text: "Located along the Postal Highway at Belbari-10, Bhaunne — easy to reach from nearby villages." },
 ];
 
-export default function AboutPage() {
+export default async function AboutPage() {
   // Same auto-detected photo as the home page: drop the real photo in at
   // /public/images/staff/jb-magar.jpg and it replaces the initials avatar.
   const principalPhoto = staffPhoto("jb-magar");
   const principalInitials = staffInitials(SCHOOL.principalName);
+  const stats = await getVisibleStats();
+  // Leadership messages — admin-editable at /admin/settings; fall back to the
+  // PRINCIPAL/CHAIRMAN defaults in school.ts.
+  const {
+    heroSlides,
+    principalMessageHtml,
+    chairmanName,
+    chairmanTitle,
+    chairmanMessageHtml,
+  } = await getSiteSettings();
+  const introImage = heroSlides[0];
 
   return (
     <>
@@ -66,7 +78,7 @@ export default function AboutPage() {
             children from every background can aim high.
           </p>
           <div className="mt-7 grid grid-cols-3 gap-4">
-            {STATS.slice(0, 3).map((s) => (
+            {stats.slice(0, 3).map((s) => (
               <div key={s.label} className="rounded-xl bg-slate-50 p-4 text-center">
                 <div className="font-heading text-2xl font-bold text-navy">{s.value}</div>
                 <div className="mt-1 text-xs text-slate-500">{s.label}</div>
@@ -76,11 +88,12 @@ export default function AboutPage() {
         </div>
         <div className="relative h-[360px] overflow-hidden rounded-2xl shadow-lg">
           <Image
-            src={HERO_SLIDES[0].src}
-            alt={HERO_SLIDES[0].alt}
+            src={introImage.src}
+            alt={introImage.alt}
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-cover"
+            style={introImage.objectPosition ? { objectPosition: introImage.objectPosition } : undefined}
           />
         </div>
       </section>
@@ -162,7 +175,7 @@ export default function AboutPage() {
 
       {/* Principal's message — the full letter. The home page shows a short
           excerpt and its "Read Full Message" link scrolls straight here.
-          ⚠️ PLACEHOLDER LETTER — replace with the principal's actual message. */}
+          The letter body is admin-editable at /admin/settings. */}
       <section id="principal-message" className="scroll-mt-28 bg-white py-16">
         <div className="container-page max-w-4xl">
           <h2 className="text-3xl font-bold">Message from the Principal</h2>
@@ -187,46 +200,24 @@ export default function AboutPage() {
               <p className="mt-4 font-heading font-bold text-navy">{SCHOOL.principalName}</p>
               <p className="text-sm text-slate-500">Principal, {SCHOOL.shortName}</p>
             </div>
-            <div className="space-y-4 leading-relaxed text-slate-600">
-              <p>Dear parents, students and well-wishers,</p>
-              <p>
-                It is my privilege to welcome you to {SCHOOL.name}. Education is not just
-                about books — it is about building character, confidence and curiosity.
-                At Eastern View, every child is nurtured to become their best self.
-              </p>
-              <p>
-                Since our establishment in {SCHOOL.established} B.S., our teachers have
-                worked to give children from Nursery to Class 10 a strong foundation in
-                both English-medium academics and good values. We believe every child,
-                whatever their background, deserves the chance to learn, grow and dream
-                bigger.
-              </p>
-              <p>
-                We are grateful to the parents and the wider Belbari community for the
-                trust they place in us, and we remain committed to earning it every day.
-                I warmly invite you to visit our campus, meet our teachers and see the
-                caring learning environment we have built together.
-              </p>
-              <p className="font-heading font-semibold text-navy">
-                {SCHOOL.principalName}<br />
-                <span className="text-sm font-normal text-slate-500">Principal, {SCHOOL.name}</span>
-              </p>
-            </div>
+            <div
+              className="prose prose-slate max-w-none leading-relaxed text-slate-600"
+              dangerouslySetInnerHTML={{ __html: principalMessageHtml }}
+            />
           </div>
         </div>
       </section>
 
-      {/* Chairman message */}
+      {/* Chairman message — name/title/body admin-editable at /admin/settings. */}
       <section className="bg-slate-50 py-16">
         <div className="container-page max-w-3xl text-center">
           <h2 className="text-3xl font-bold">Message from the Chairman</h2>
-          <blockquote className="mt-6 border-l-4 border-gold pl-6 text-left text-lg italic leading-relaxed text-slate-700">
-            &ldquo;Since our establishment in {SCHOOL.established} B.S., we have believed that
-            every child deserves quality education regardless of background. We thank our
-            parents and community for their continued trust.&rdquo;
-          </blockquote>
-          <p className="mt-4 text-left font-heading font-bold text-navy">{CHAIRMAN.name || "School Management Committee"}</p>
-          <p className="text-left text-sm text-slate-500">{CHAIRMAN.title}</p>
+          <div
+            className="prose prose-slate mt-6 max-w-none border-l-4 border-gold pl-6 text-left italic leading-relaxed text-slate-700"
+            dangerouslySetInnerHTML={{ __html: chairmanMessageHtml }}
+          />
+          <p className="mt-4 text-left font-heading font-bold text-navy">{chairmanName || "School Management Committee"}</p>
+          <p className="text-left text-sm text-slate-500">{chairmanTitle}</p>
         </div>
       </section>
 

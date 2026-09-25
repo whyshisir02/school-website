@@ -20,9 +20,19 @@ export default function GalleryAdmin({ albums }: { albums: Album[] }) {
     const fd = new FormData();
     fd.set("albumId", activeId);
     Array.from(files).forEach((f) => fd.append("files", f));
-    await fetch("/api/admin/gallery/upload", { method: "POST", body: fd });
+    const res = await fetch("/api/admin/gallery/upload", { method: "POST", body: fd });
+    const data = await res.json().catch(() => null);
     setUploading(false);
     if (fileRef.current) fileRef.current.value = "";
+    if (!res.ok) {
+      alert(data?.error ?? "Upload failed. Use JPEG/PNG/WebP under 5MB.");
+      return;
+    }
+    if (data?.skipped) {
+      alert(
+        `${data.count} image(s) uploaded, ${data.skipped} skipped (too large or not JPEG/PNG/WebP).`
+      );
+    }
     location.reload();
   }
 

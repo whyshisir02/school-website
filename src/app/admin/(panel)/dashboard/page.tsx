@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { FiFileText, FiImage, FiPlus } from "react-icons/fi";
+import { FiFileText, FiImage, FiPlus, FiMail } from "react-icons/fi";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
-  const [noticeCount, albumCount, imageCount, recent] = await Promise.all([
+  const [noticeCount, albumCount, imageCount, unreadCount, recent] = await Promise.all([
     prisma.notice.count(),
     prisma.galleryAlbum.count(),
     prisma.galleryImage.count(),
+    prisma.contactInquiry.count({ where: { isRead: false } }),
     prisma.notice.findMany({ orderBy: { createdAt: "desc" }, take: 5 }),
   ]);
 
@@ -38,7 +39,7 @@ export default async function AdminDashboard() {
         </div>
       </div>
 
-      <div className="mt-6 grid gap-6 sm:grid-cols-3">
+      <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((c) => (
           <Link key={c.label} href={c.href} className="group rounded-xl bg-white p-6 shadow-sm transition hover:shadow-md">
             <c.icon size={22} className="text-slate-400 transition group-hover:text-navy" />
@@ -51,6 +52,32 @@ export default async function AdminDashboard() {
             </div>
           </Link>
         ))}
+
+        {/* Unread inquiries — emphasized (gold) whenever there's something new. */}
+        <Link
+          href="/admin/inquiries"
+          className={`group rounded-xl p-6 shadow-sm transition hover:shadow-md ${
+            unreadCount > 0 ? "bg-white ring-2 ring-gold" : "bg-white"
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <FiMail size={22} className={unreadCount > 0 ? "text-gold" : "text-slate-400 transition group-hover:text-navy"} />
+            {unreadCount > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white">
+                {unreadCount}
+              </span>
+            )}
+          </div>
+          <div className={`mt-3 font-heading text-3xl font-bold ${unreadCount > 0 ? "text-gold-dark" : "text-navy"}`}>
+            {unreadCount}
+          </div>
+          <div className="mt-1 flex items-center justify-between">
+            <span className="text-sm text-slate-500">Unread Messages</span>
+            <span className="text-xs font-semibold text-navy opacity-0 transition group-hover:opacity-100">
+              View →
+            </span>
+          </div>
+        </Link>
       </div>
 
       <section className="mt-8 rounded-xl bg-white p-6 shadow-sm">

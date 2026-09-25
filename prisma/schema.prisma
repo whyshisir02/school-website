@@ -62,12 +62,17 @@ model GalleryImage {
 }
 
 model Settings {
-  id         String @id @default("main")
+  id         String  @id @default("main")
   schoolName String
   address    String
   phone      String
   email      String
   mapLink    String?
+  mapEmbed   String? // live Google Maps iframe src (embed URL)
+  stats      Json?   // homepage stat tiles: [{ value, label, show }]
+  principal  Json?   // { excerpt, messageHtml } — home quote + full About letter
+  chairman   Json?   // { name, title, messageHtml } — About chairman message
+  heroSlides Json?   // homepage hero photos: [{ url, alt, publicId?, objectPosition? }]
 }
 
 model ContactInquiry {

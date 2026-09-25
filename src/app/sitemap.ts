@@ -1,8 +1,9 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
+import { siteUrl } from "@/lib/site-url";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = "https://easternview.edu.np";
+  const base = siteUrl();
   const staticPages = ["", "/about", "/academics", "/notices", "/gallery", "/contact"].map((p) => ({
     url: `${base}${p}`,
     lastModified: new Date(),

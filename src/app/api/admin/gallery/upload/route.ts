@@ -28,14 +28,17 @@ export async function POST(req: Request) {
   }
 
   const uploaded = [];
+  let skipped = 0;
   for (const file of files) {
-    if (file.size > MAX_FILE_SIZE) continue; // 5MB limit
-    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) continue; // images only
+    if (file.size > MAX_FILE_SIZE || !ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      skipped++; // too large, or not a JPEG/PNG/WebP
+      continue;
+    }
     const buf = Buffer.from(await file.arrayBuffer());
     const b64 = `data:${file.type};base64,${buf.toString("base64")}`;
     const result = await cloudinary.uploader.upload(b64, {
       folder: "eastern-view/gallery",
-      transformation: [{ quality: "auto", fetch_format: "auto" }],
+      transformation: [{ width: 1600, crop: "limit", quality: "auto", fetch_format: "auto" }],
     });
     uploaded.push({ url: result.secure_url, publicId: result.public_id });
   }
@@ -56,5 +59,5 @@ export async function POST(req: Request) {
     })),
   });
 
-  return NextResponse.json({ ok: true, count: uploaded.length });
+  return NextResponse.json({ ok: true, count: uploaded.length, skipped });
 }

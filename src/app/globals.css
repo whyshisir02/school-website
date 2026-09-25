@@ -1,8 +1,10 @@
+/* Must precede the @tailwind directives: Turbopack (Next 16 default) enforces
+   the CSS rule that @import comes before all other rules. */
+@import "./marquee.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import "./marquee.css";
 
 :root {
   --font-inter: "Inter", sans-serif;

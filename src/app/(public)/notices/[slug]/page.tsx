@@ -6,6 +6,7 @@ import PageHeader from "@/components/PageHeader";
 import PrintButton from "@/components/PrintButton";
 import NoticeLetterhead from "@/components/NoticeLetterhead";
 import NoticePrintFit from "@/components/NoticePrintFit";
+import { toBSDateString } from "@/lib/bs-date";
 
 export const revalidate = 3600;
 
@@ -40,23 +41,24 @@ export default async function NoticeDetailPage({
 
   const [prev, next] = await Promise.all([
     prisma.notice.findFirst({
-      where: { isPublished: true, publishedAt: { lt: notice.publishedAt ?? notice.createdAt } },
-      orderBy: { publishedAt: "desc" },
+      where: { isPublished: true, createdAt: { lt: notice.createdAt } },
+      orderBy: { createdAt: "desc" },
       select: { slug: true, title: true },
     }),
     prisma.notice.findFirst({
-      where: { isPublished: true, publishedAt: { gt: notice.publishedAt ?? notice.createdAt } },
-      orderBy: { publishedAt: "asc" },
+      where: { isPublished: true, createdAt: { gt: notice.createdAt } },
+      orderBy: { createdAt: "asc" },
       select: { slug: true, title: true },
     }),
   ]);
 
   const d = notice.publishedAt ?? notice.createdAt;
-  const dateLabel = `${d.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  })} (${d.toLocaleDateString("en-GB", { weekday: "long" })})`;
+  const bs = toBSDateString(d);
+  // Official notice sheet shows the Bikram Sambat date only; fall back to the
+  // AD date just in case BS conversion fails for an out-of-range date.
+  const dateLabel = bs
+    ? `${bs} BS`
+    : d.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
 
   return (
     <>

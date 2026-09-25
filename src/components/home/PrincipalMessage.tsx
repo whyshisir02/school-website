@@ -2,13 +2,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { FiArrowRight } from "react-icons/fi";
 import { SCHOOL } from "@/lib/school";
+import { getSiteSettings } from "@/lib/settings";
 import { staffPhoto, staffInitials } from "@/lib/staff";
 
-export default function PrincipalMessage() {
+export default async function PrincipalMessage() {
   // Photo auto-detected from /public/images/staff/jb-magar.jpg — drop the real
   // photo in and it replaces the initials avatar with no code change.
   const photo = staffPhoto("jb-magar");
   const initials = staffInitials(SCHOOL.principalName);
+  // Admin-editable at /admin/settings; falls back to PRINCIPAL.excerpt.
+  const { principalExcerpt } = await getSiteSettings();
 
   return (
     <section className="bg-white">
@@ -34,9 +37,7 @@ export default function PrincipalMessage() {
           </div>
           <div>
             <blockquote className="text-lg italic leading-relaxed text-slate-700 md:text-xl">
-              &ldquo;Education is not just about books — it is about building character,
-              confidence, and curiosity. At Eastern View, every child is nurtured to
-              become their best self.&rdquo;
+              &ldquo;{principalExcerpt}&rdquo;
             </blockquote>
             <p className="mt-4 font-heading font-bold text-navy">{SCHOOL.principalName}</p>
             <p className="text-sm text-slate-500">Principal, {SCHOOL.shortName}</p>

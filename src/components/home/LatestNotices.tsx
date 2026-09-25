@@ -14,7 +14,7 @@ const categoryColors: Record<string, string> = {
 export default async function LatestNotices() {
   const notices = await prisma.notice.findMany({
     where: { isPublished: true },
-    orderBy: { publishedAt: "desc" },
+    orderBy: { createdAt: "desc" },
     take: 3,
   });
 

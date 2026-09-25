@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { rateLimit, clientIp } from "@/lib/rate-limit";
 
 const MAX_NAME = 100;
 const MAX_PHONE = 20;
@@ -7,7 +8,24 @@ const MAX_MESSAGE = 2000;
 
 const MIN_SUBMIT_MS = 1500; // real visitors take longer than this to fill the form
 
+// Per-IP cap: at most 5 inquiries every 10 minutes. A genuine visitor never
+// hits this; it blunts scripted floods that slip past the honeypot/time trap.
+const RATE_LIMIT = 5;
+const RATE_WINDOW_MS = 10 * 60 * 1000;
+
 export async function POST(req: Request) {
+  const { allowed, retryAfterSec } = rateLimit(
+    `contact:${clientIp(req)}`,
+    RATE_LIMIT,
+    RATE_WINDOW_MS
+  );
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many messages. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(retryAfterSec) } }
+    );
+  }
+
   try {
     const body = await req.json();
     const name = typeof body?.name === "string" ? body.name.trim() : "";
