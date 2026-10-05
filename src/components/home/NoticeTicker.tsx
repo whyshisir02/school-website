@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 export default async function NoticeTicker() {
   const notices = await prisma.notice.findMany({
     where: { isPublished: true },
-    orderBy: { publishedAt: "desc" },
+    orderBy: [{ publishedAt: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }],
     take: 3,
     select: { slug: true, title: true },
   });
@@ -16,11 +16,11 @@ export default async function NoticeTicker() {
       <span className="flex shrink-0 items-center bg-gold-dark px-4 py-2 text-xs font-bold uppercase tracking-wide">
         Latest
       </span>
-      <div className="relative flex-1 overflow-hidden py-2">
+      <div className="relative min-w-0 flex-1 overflow-hidden py-2">
         <div className="marquee flex w-max gap-12 whitespace-nowrap pl-6 text-sm font-medium group-hover:[animation-play-state:paused]">
-          {[...notices, ...notices].map((n, i) => (
-            <Link key={i} href={`/notices/${n.slug}`} className="hover:underline">
-              ● {n.title}
+          {[...notices, ...notices].map((notice, i) => (
+            <Link key={`${notice.slug}-${i}`} href={`/notices/${notice.slug}`} aria-hidden={i >= notices.length} tabIndex={i >= notices.length ? -1 : undefined} className="hover:underline">
+              ● {notice.title}
             </Link>
           ))}
         </div>

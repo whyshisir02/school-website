@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { getRecentNoticeCount } from "@/lib/recent-notices";
 
 export async function GET() {
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const count = await prisma.notice.count({
-    where: { isPublished: true, publishedAt: { gte: sevenDaysAgo } },
-  });
+  const count = await getRecentNoticeCount();
   return NextResponse.json({ count });
 }

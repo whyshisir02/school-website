@@ -6,8 +6,13 @@ import LatestNotices from "@/components/home/LatestNotices";
 import GalleryPreview from "@/components/home/GalleryPreview";
 import ContactCTA from "@/components/home/ContactCTA";
 import { SchoolJsonLd } from "@/components/seo/SchoolJsonLd";
+import { getSiteSettings } from "@/lib/settings";
 
-export default function HomePage() {
+// ISR: home refreshes at most hourly; admin saves also trigger revalidatePath("/")
+export const revalidate = 3600;
+
+export default async function HomePage() {
+  const s = await getSiteSettings();
   return (
     <>
       <SchoolJsonLd />
@@ -17,7 +22,12 @@ export default function HomePage() {
       <WhyChooseUs />
       <LatestNotices />
       <GalleryPreview />
-      <ContactCTA />
+      <ContactCTA
+        address={s.address}
+        phone={s.phone}
+        email={s.email}
+        mapEmbed={s.mapEmbed}
+      />
     </>
   );
 }

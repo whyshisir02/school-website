@@ -1,8 +1,42 @@
-node_modules
-.next
-out
-.env
-.env.local
+# Installed dependencies and generated Next.js/TypeScript files
+node_modules/
+/.next/
+/out/
 *.tsbuildinfo
-next-env.d.ts
+/next-env.d.ts
+
+# Local environment and private operational data
+.env
+.env.*
+!.env.example
+/.local/
+/backup.key
+/super-admin-credentials*.txt
+
+# Local hosting/tool caches
+/.netlify/
+/.vercel/
+/.turbo/
+
+# Generated test reports
+/coverage/
+/playwright-report/
+/test-results/
+
+# Logs and temporary editor files
+*.log
+*.tmp
+*.swp
+*.swo
+*~
 .DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local documentation, tests and Netlify configuration (excluded by request)
+/docs/
+/tests/
+
+
+# Keep source, public images, scripts and lockfiles committed.
+# AGENTS.md and CLAUDE.md are project instructions.

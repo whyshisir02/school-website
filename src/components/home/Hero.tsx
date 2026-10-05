@@ -1,71 +1,59 @@
 import Link from "next/link";
-import Image from "next/image";
 import { FiArrowRight } from "react-icons/fi";
-import { STATS, SCHOOL, IMAGES } from "@/lib/school";
+import { FaGraduationCap } from "react-icons/fa";
 
-export default function Hero() {
+import { getSiteSettings, getVisibleStats } from "@/lib/settings";
+import HeroSlideshow from "./HeroSlideshow";
+
+/**
+ * PHOTO COMPOSITION NOTE (for whoever adds real hero photos):
+ * The gradient overlay (`.hero-overlay` in globals.css) covers the LEFT ~60%
+ * of the hero on desktop — choose photos that keep faces / key action in the
+ * RIGHT third of the frame. Photos that are too dark or busy also fight the
+ * white text; bright, wide shots of the building / assembly work best.
+ */
+export default async function Hero() {
+  const [stats, { heroSlides, branding }] = await Promise.all([
+    getVisibleStats(),
+    getSiteSettings(),
+  ]);
   return (
-    <section className="relative overflow-hidden bg-white">
-      <div className="container-page grid items-center gap-10 py-14 lg:h-[75vh] lg:grid-cols-[3fr_2fr] lg:py-0">
-        {/* Left */}
-        <div>
-          <span className="inline-block rounded-full bg-gold/10 px-4 py-1.5 text-sm font-semibold text-gold-dark">
-            🎓 Admissions Open 2082
-          </span>
-          <h1 className="mt-5 text-4xl font-extrabold leading-tight sm:text-5xl">
-            Nurturing Minds From <span className="text-gold">Nursery</span> to{" "}
-            <span className="text-gold">Class 10</span>
+    <section className="relative isolate overflow-hidden bg-navy">
+      {/* Full-bleed slideshow background (admin-editable at /admin/settings) */}
+      <HeroSlideshow slides={heroSlides} background />
+
+
+      {/* Content */}
+      <div className="container-page pointer-events-none relative z-10 flex min-h-[75vh] items-center py-20 lg:min-h-[82vh] lg:items-start">
+        <div className="pointer-events-auto max-w-2xl">
+          {/* Evergreen badge — no seasonal "admissions open" claim.
+              Admission details live on the Contact page (Get in Touch button). */}
+          {branding.motto && <span className="inline-flex items-center gap-1.5 rounded-full bg-navy/70 px-4 py-1.5 text-sm font-semibold text-gold-light ring-1 ring-gold/50 backdrop-blur-sm">
+            <FaGraduationCap size={14} /> {branding.motto}
+          </span>}
+          <h1 className="hero-text mt-5 text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
+            {branding.headline === "Nurturing Minds From Nursery to Class 10" ? <>Nurturing Minds From <span className="text-gold">Nursery</span> to <span className="text-gold">Class 10</span></> : branding.headline}
           </h1>
-          <p className="mt-4 max-w-xl text-lg text-slate-600">
-            Quality English-medium education with experienced teachers, modern facilities,
-            and a caring environment in the heart of {SCHOOL.location}.
+          <p className="hero-text mt-4 text-lg font-medium text-white">
+            {branding.description}
           </p>
           <div className="mt-7 flex flex-wrap gap-4">
             <Link href="/academics" className="btn-primary">
               Explore Academics <FiArrowRight />
             </Link>
-            <Link href="/notices" className="btn-outline">
+            <Link href="/notices" className="btn-outline-light">
               View Notices
             </Link>
           </div>
-          <div className="mt-9 flex flex-wrap gap-8">
-            {STATS.slice(0, 3).map((s) => (
+          {/* Publish only school-verified statistics. */}
+          {stats.length > 0 && <div className="hero-text mt-8 flex flex-wrap gap-x-8 gap-y-4">
+            {stats.slice(0, 3).map((s) => (
               <div key={s.label}>
-                <div className="font-heading text-2xl font-bold text-navy">{s.value}</div>
-                <div className="text-xs font-medium uppercase tracking-wide text-slate-500">{s.label}</div>
+                <div className="font-heading text-2xl font-bold text-gold">{s.value}</div>
+                <div className="text-xs font-medium uppercase tracking-wide text-slate-100">{s.label}</div>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Right — image collage */}
-        <div className="relative hidden h-full min-h-[420px] lg:block">
-          <Image
-            src={IMAGES.heroMain}
-            alt="School building"
-            fill
-            priority
-            sizes="(max-width: 1024px) 100vw, 40vw"
-            className="rounded-xl object-cover shadow-lg"
-          />
-          <Image
-            src={IMAGES.heroSmall1}
-            alt="Students in classroom"
-            width={220}
-            height={160}
-            className="absolute -bottom-6 -left-8 rounded-xl object-cover shadow-lg"
-          />
-          <Image
-            src={IMAGES.heroSmall2}
-            alt="School activity"
-            width={180}
-            height={130}
-            className="absolute -right-4 top-8 rounded-xl object-cover shadow-lg"
-          />
-          <div className="absolute bottom-16 right-6 rounded-xl bg-navy px-5 py-4 text-white shadow-xl">
-            <div className="font-heading text-2xl font-bold text-gold">N–10</div>
-            <div className="text-xs">Nursery to Class 10</div>
-          </div>
+          </div>}
         </div>
       </div>
     </section>

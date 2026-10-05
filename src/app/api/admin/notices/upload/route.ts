@@ -1,31 +1,19 @@
+import { mediaFolder } from "@/lib/media-folder";
 import { NextResponse } from "next/server";
-import { v2 as cloudinary } from "cloudinary";
-import { requireAdmin } from "@/lib/auth-helpers";
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
+import { cloudinary } from "@/lib/cloudinary";
+import { prisma } from "@/lib/db";
+import { requireAdmin, ForbiddenError } from "@/lib/auth-helpers";
+import { IMAGE_TYPES, IMAGE_MAX_BYTES } from "@/lib/image-upload-policy";
 export async function POST(req: Request) {
-  await requireAdmin();
-  const form = await req.formData();
-  const file = form.get("file") as File | null;
-
-  if (!file) {
-    return NextResponse.json({ error: "file required" }, { status: 400 });
-  }
-  if (file.size > 5 * 1024 * 1024) {
-    return NextResponse.json({ error: "Max file size is 5MB" }, { status: 400 });
-  }
-
-  const buf = Buffer.from(await file.arrayBuffer());
-  const b64 = `data:${file.type};base64,${buf.toString("base64")}`;
-  const result = await cloudinary.uploader.upload(b64, {
-    folder: "eastern-view/notices",
-    transformation: [{ quality: "auto", fetch_format: "auto", width: 1200, crop: "limit" }],
-  });
-
-  return NextResponse.json({ ok: true, url: result.secure_url, publicId: result.public_id });
+  try { await requireAdmin("NOTICES"); } catch (error) { return NextResponse.json({ error: error instanceof ForbiddenError ? "Forbidden" : "Unauthorized" }, { status: error instanceof ForbiddenError ? 403 : 401 }); }
+  try {
+    const form = await req.formData();
+    const file = form.get("file");
+    if (!(file instanceof File) || !file.size || file.size > IMAGE_MAX_BYTES || !IMAGE_TYPES.includes(file.type)) return NextResponse.json({ error: "Use JPEG/PNG/WebP compressed to 700 KB or less." }, { status: 400 });
+    const publicId = `${mediaFolder()}/notices/${crypto.randomUUID()}`;
+    await prisma.mediaCleanup.create({ data: { publicId, notBefore: new Date(Date.now() + 86400_000) } });
+    const buf = Buffer.from(await file.arrayBuffer());
+    const result = await cloudinary.uploader.upload(`data:${file.type};base64,${buf.toString("base64")}`, { public_id: publicId, overwrite: false });
+    return NextResponse.json({ ok: true, url: result.secure_url, publicId: result.public_id });
+  } catch { return NextResponse.json({ error: "Photo could not be uploaded. Please try again." }, { status: 503 }); }
 }

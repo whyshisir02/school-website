@@ -5,8 +5,19 @@ const prisma = new PrismaClient();
 
 async function main() {
   // Admin user
-  const email = (process.env.ADMIN_EMAIL ?? "admin@easternview.edu.np").toLowerCase();
-  const passwordHash = await bcrypt.hash(process.env.ADMIN_PASSWORD ?? "ChangeMe@2026", 12);
+  const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  if (!email) {
+    throw new Error("ADMIN_EMAIL is missing. Set it before seeding.");
+  }
+
+  // Never seed with a known default password — force a real one in production.
+  const password = process.env.ADMIN_PASSWORD;
+  if (!password || password === "ChangeMe@2026") {
+    throw new Error(
+      "ADMIN_PASSWORD is missing or still the default. Set a strong password in .env before seeding."
+    );
+  }
+  const passwordHash = await bcrypt.hash(password, 12);
   await prisma.user.upsert({
     where: { email },
     update: {},
@@ -59,8 +70,10 @@ async function main() {
       create: {
         ...n,
         slug,
-        isPublished: true,
-        publishedAt: new Date(),
+        // Sample content — seeded as DRAFTS so nothing fake goes live.
+        // Review + publish from /admin/notices, or delete them entirely.
+        isPublished: false,
+        publishedAt: null,
       },
     });
   }
@@ -132,7 +145,7 @@ async function main() {
     });
   }
 
-  console.log("✅ Seed complete: admin user, 5 notices, 3 albums");
+  console.log("✅ Seed complete: admin user, 5 draft notices (unpublished), 3 albums");
 }
 
 main()
