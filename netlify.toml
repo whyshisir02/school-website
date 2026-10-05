@@ -1,0 +1,10 @@
+[build]
+  command = "npm run deploy:check && npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Netlify detects Next.js and provisions its OpenNext adapter automatically.
+# Set secrets in the Netlify UI (build and functions scopes), never in this file.
+# Schema changes and school initialization are explicit maintainer operations.

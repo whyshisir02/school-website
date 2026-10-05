@@ -36,7 +36,7 @@ Desktop.ini
 # Local documentation, tests and Netlify configuration (excluded by request)
 /docs/
 /tests/
-/netlify.toml
+
 
 # Keep source, public images, scripts and lockfiles committed.
 # AGENTS.md and CLAUDE.md are project instructions.
