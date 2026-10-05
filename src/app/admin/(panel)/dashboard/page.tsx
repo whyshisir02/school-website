@@ -1,116 +1,52 @@
+import { requirePageAccess, accessFromSession } from "@/lib/auth-helpers";
+import { canAccess } from "@/lib/permissions";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { FiFileText, FiImage, FiPlus, FiMail } from "react-icons/fi";
-
+import { getUnreadInquiryCount } from "@/lib/admin-counts";
+import { FiFileText, FiImage, FiMail, FiPlus, FiArrowUpRight, FiEdit3 } from "react-icons/fi";
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
-  const [noticeCount, albumCount, imageCount, unreadCount, recent] = await Promise.all([
-    prisma.notice.count(),
-    prisma.galleryAlbum.count(),
-    prisma.galleryImage.count(),
-    prisma.contactInquiry.count({ where: { isRead: false } }),
-    prisma.notice.findMany({ orderBy: { createdAt: "desc" }, take: 5 }),
+  const access = accessFromSession(await requirePageAccess());
+  const noticesAllowed = canAccess(access, "NOTICES");
+  const galleryAllowed = canAccess(access, "GALLERY");
+  const inquiriesAllowed = canAccess(access, "INQUIRIES");
+  const [published, drafts, photos, unread, notices, inquiries] = await Promise.all([
+    noticesAllowed ? prisma.notice.count({ where: { isPublished: true } }) : 0,
+    noticesAllowed ? prisma.notice.count({ where: { isPublished: false } }) : 0,
+    galleryAllowed ? prisma.galleryImage.count() : 0,
+    inquiriesAllowed ? getUnreadInquiryCount() : 0,
+    noticesAllowed ? prisma.notice.findMany({ orderBy: { updatedAt: "desc" }, take: 5, select: { id: true, title: true, isPublished: true, updatedAt: true } }) : [],
+    inquiriesAllowed ? prisma.contactInquiry.findMany({ where: { isRead: false }, orderBy: { createdAt: "desc" }, take: 4, select: { id: true, name: true, message: true, createdAt: true } }) : [],
   ]);
-
   const cards = [
-    { label: "Total Notices", value: noticeCount, href: "/admin/notices", icon: FiFileText },
-    { label: "Gallery Albums", value: albumCount, href: "/admin/gallery", icon: FiImage },
-    { label: "Gallery Images", value: imageCount, href: "/admin/gallery", icon: FiImage },
-  ];
-
-  return (
-    <div>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <div className="flex gap-3">
-          <Link
-            href="/admin/notices"
-            className="flex items-center gap-2 rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-navy/90"
-          >
-            <FiFileText size={16} /> Manage Notices
-          </Link>
-          <Link
-            href="/admin/gallery"
-            className="flex items-center gap-2 rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-white transition hover:bg-gold/90"
-          >
-            <FiImage size={16} /> Manage Gallery
-          </Link>
-        </div>
-      </div>
-
-      <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {cards.map((c) => (
-          <Link key={c.label} href={c.href} className="group rounded-xl bg-white p-6 shadow-sm transition hover:shadow-md">
-            <c.icon size={22} className="text-slate-400 transition group-hover:text-navy" />
-            <div className="mt-3 font-heading text-3xl font-bold text-navy">{c.value}</div>
-            <div className="mt-1 flex items-center justify-between">
-              <span className="text-sm text-slate-500">{c.label}</span>
-              <span className="text-xs font-semibold text-navy opacity-0 transition group-hover:opacity-100">
-                Manage →
-              </span>
-            </div>
-          </Link>
-        ))}
-
-        {/* Unread inquiries — emphasized (gold) whenever there's something new. */}
-        <Link
-          href="/admin/inquiries"
-          className={`group rounded-xl p-6 shadow-sm transition hover:shadow-md ${
-            unreadCount > 0 ? "bg-white ring-2 ring-gold" : "bg-white"
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <FiMail size={22} className={unreadCount > 0 ? "text-gold" : "text-slate-400 transition group-hover:text-navy"} />
-            {unreadCount > 0 && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white">
-                {unreadCount}
-              </span>
-            )}
-          </div>
-          <div className={`mt-3 font-heading text-3xl font-bold ${unreadCount > 0 ? "text-gold-dark" : "text-navy"}`}>
-            {unreadCount}
-          </div>
-          <div className="mt-1 flex items-center justify-between">
-            <span className="text-sm text-slate-500">Unread Messages</span>
-            <span className="text-xs font-semibold text-navy opacity-0 transition group-hover:opacity-100">
-              View →
-            </span>
-          </div>
-        </Link>
-      </div>
-
-      <section className="mt-8 rounded-xl bg-white p-6 shadow-sm">
-        <h2 className="font-heading text-base font-bold">Quick Actions</h2>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <Link
-            href="/admin/notices"
-            className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium transition hover:border-navy hover:text-navy"
-          >
-            <FiPlus size={14} /> Create Notice
-          </Link>
-          <Link
-            href="/admin/gallery"
-            className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium transition hover:border-navy hover:text-navy"
-          >
-            <FiPlus size={14} /> Upload Gallery Images
-          </Link>
-        </div>
-      </section>
-
-      <h2 className="mt-10 text-lg font-bold">Recent Notices</h2>
-      <ul className="mt-4 divide-y rounded-xl bg-white shadow-sm">
-        {recent.map((n) => (
-          <li key={n.id} className="flex items-center justify-between px-5 py-3 text-sm">
-            <span>{n.title}</span>
-            <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-              n.isPublished ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"
-            }`}>
-              {n.isPublished ? "Published" : "Draft"}
-            </span>
-          </li>
-        ))}
-      </ul>
+    { label: "Published notices", value: published, icon: FiFileText, href: "/admin/notices", detail: "Updates visible to parents" },
+    { label: "Draft notices", value: drafts, icon: FiEdit3, href: "/admin/notices", detail: "Ready for your next review" },
+    { label: "Gallery photos", value: photos, icon: FiImage, href: "/admin/gallery", detail: "School moments shared" },
+    { label: "Unread inquiries", value: unread, icon: FiMail, href: "/admin/inquiries", detail: unread ? "Parents are waiting to hear from you" : "You're all caught up" },
+  ].filter((card) => card.href === "/admin/notices" ? noticesAllowed : card.href === "/admin/gallery" ? galleryAllowed : inquiriesAllowed);
+  const date = (value: Date) => value.toLocaleDateString("en-GB", { timeZone: "Asia/Kathmandu", day: "numeric", month: "short" });
+  return <div className="space-y-8">
+    <div className="flex flex-wrap items-end justify-between gap-4">
+      <div><p className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-500">Your workspace</p><h1 className="font-heading text-3xl font-bold text-navy">Welcome back</h1><p className="mt-2 text-slate-500">Keep families informed and your school website up to date.</p></div>
+      {noticesAllowed && <Link href="/admin/notices?new=1" className="btn-primary !rounded-xl"><FiPlus /> Create notice</Link>}
     </div>
-  );
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{cards.map((card) => <Link key={card.label} href={card.href} className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-gold hover:shadow-sm">
+      <div className="flex items-center justify-between"><span className="rounded-xl bg-slate-50 p-3 text-navy"><card.icon size={20} /></span><FiArrowUpRight className="text-slate-400" /></div>
+      <p className="mt-5 text-3xl font-bold text-navy">{card.value}</p><h2 className="mt-1 text-sm font-semibold">{card.label}</h2><p className="mt-2 text-xs leading-relaxed text-slate-500">{card.detail}</p>
+    </Link>)}</div>
+    <section className="rounded-2xl bg-navy p-6 text-white"><h2 className="font-heading text-lg font-semibold">What would you like to update?</h2><div className="mt-4 flex flex-wrap gap-3">
+      {canAccess(access, "GALLERY") && <Link href="/admin/gallery" className="rounded-xl bg-white/10 px-4 py-3 text-sm hover:bg-white/20">Upload school photos</Link>}
+      {canAccess(access, "HERO") && <Link href="/admin/settings/hero" className="rounded-xl bg-white/10 px-4 py-3 text-sm hover:bg-white/20">Refresh homepage photos</Link>}
+      {canAccess(access, "MESSAGES") && <Link href="/admin/settings/messages" className="rounded-xl bg-white/10 px-4 py-3 text-sm hover:bg-white/20">Edit leadership messages</Link>}
+    </div></section>
+    <div className="grid items-start gap-6 xl:grid-cols-[3fr_2fr]">
+      {noticesAllowed && <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white"><div className="flex items-center justify-between border-b p-5"><h2 className="font-bold">Recent notices</h2><Link href="/admin/notices" className="text-sm font-medium text-slate-500">View all</Link></div>
+        {notices.length ? <ul className="divide-y">{notices.map((notice) => <li key={notice.id}><Link href={`/admin/notices?edit=${notice.id}`} className="flex items-center gap-3 p-5 hover:bg-slate-50"><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{notice.title}</p><p className="mt-1 text-xs text-slate-500">Updated {date(notice.updatedAt)}</p></div><span className={`rounded-full px-3 py-1 text-xs font-medium ${notice.isPublished ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`}>{notice.isPublished ? "Published" : "Draft"}</span><FiEdit3 className="text-slate-400" /></Link></li>)}</ul> : <p className="p-6 text-sm text-slate-500">Create your first notice to share an update with families.</p>}
+      </section>}
+      {inquiriesAllowed && <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white"><div className="flex items-center justify-between border-b p-5"><h2 className="font-bold">Needs your attention</h2><FiMail className="text-gold-dark" /></div>
+        {inquiries.length ? <ul className="divide-y">{inquiries.map((inquiry) => <li key={inquiry.id}><Link href="/admin/inquiries" className="block p-5 hover:bg-slate-50"><div className="flex justify-between gap-3"><p className="text-sm font-semibold">{inquiry.name}</p><span className="text-xs text-slate-400">{date(inquiry.createdAt)}</span></div><p className="mt-2 line-clamp-2 text-sm text-slate-500">{inquiry.message}</p></Link></li>)}</ul> : <p className="p-6 text-sm text-slate-500">No unread inquiries. New messages will appear here.</p>}
+      </section>}
+    </div>
+  </div>;
 }

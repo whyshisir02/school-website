@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { noticeExcerpt } from "@/lib/notice-excerpt";
 
 // NOTE: revalidate lives in the page (src/app/(public)/page.tsx), not here —
 // exporting it from a component has no effect.
@@ -14,7 +15,7 @@ const categoryColors: Record<string, string> = {
 export default async function LatestNotices() {
   const notices = await prisma.notice.findMany({
     where: { isPublished: true },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ publishedAt: { sort: "desc", nulls: "last" } }, { createdAt: "desc" }],
     take: 3,
   });
 
@@ -23,8 +24,8 @@ export default async function LatestNotices() {
   return (
     <section className="bg-white py-16">
       <div className="container-page">
-        <div className="flex items-center justify-between">
-          <h2 className="text-3xl font-bold">Latest News & Notices</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-2xl font-bold sm:text-3xl">Latest News & Notices</h2>
           <Link href="/notices" className="text-sm font-semibold text-gold-dark hover:underline">
             View All →
           </Link>
@@ -40,8 +41,8 @@ export default async function LatestNotices() {
               >
                 <div className="flex items-center gap-3">
                   <div className="flex h-14 w-14 flex-col items-center justify-center rounded-lg bg-navy text-white">
-                    <span className="font-heading text-xl font-bold leading-none">{d.getDate()}</span>
-                    <span className="text-[10px] uppercase">{d.toLocaleString("en", { month: "short" })}</span>
+                    <span className="font-heading text-xl font-bold leading-none">{d.toLocaleString("en", { day: "numeric", timeZone: "Asia/Kathmandu" })}</span>
+                    <span className="text-[10px] uppercase">{d.toLocaleString("en", { month: "short", timeZone: "Asia/Kathmandu" })}</span>
                   </div>
                   <span className={`rounded-full px-3 py-1 text-xs font-semibold ${categoryColors[n.category]}`}>
                     {n.category}

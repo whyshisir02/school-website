@@ -1,17 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FiArrowRight } from "react-icons/fi";
-import { SCHOOL } from "@/lib/school";
+
 import { getSiteSettings } from "@/lib/settings";
-import { staffPhoto, staffInitials } from "@/lib/staff";
+import { staffInitials } from "@/lib/staff-types";
+import { getPrincipalStaff } from "@/lib/staff-data";
 
 export default async function PrincipalMessage() {
-  // Photo auto-detected from /public/images/staff/jb-magar.jpg — drop the real
-  // photo in and it replaces the initials avatar with no code change.
-  const photo = staffPhoto("jb-magar");
-  const initials = staffInitials(SCHOOL.principalName);
-  // Admin-editable at /admin/settings; falls back to PRINCIPAL.excerpt.
-  const { principalExcerpt } = await getSiteSettings();
+  const [principal, { principalExcerpt, name }] = await Promise.all([getPrincipalStaff(), getSiteSettings()]);
+  if (!principal) return null;
+  const photo = principal.photoUrl;
+  const initials = staffInitials(principal.name);
 
   return (
     <section className="bg-white">
@@ -21,7 +20,7 @@ export default async function PrincipalMessage() {
             {photo ? (
               <Image
                 src={photo}
-                alt={`${SCHOOL.principalName}, Principal of ${SCHOOL.shortName}`}
+                alt={`${principal.name}, Principal of ${name}`}
                 width={160}
                 height={160}
                 className="h-[160px] w-[160px] rounded-full object-cover shadow-lg ring-4 ring-gold/40"
@@ -39,8 +38,8 @@ export default async function PrincipalMessage() {
             <blockquote className="text-lg italic leading-relaxed text-slate-700 md:text-xl">
               &ldquo;{principalExcerpt}&rdquo;
             </blockquote>
-            <p className="mt-4 font-heading font-bold text-navy">{SCHOOL.principalName}</p>
-            <p className="text-sm text-slate-500">Principal, {SCHOOL.shortName}</p>
+            <p className="mt-4 font-heading font-bold text-navy">{principal.name}</p>
+            <p className="text-sm text-slate-500">{principal.position}, {name}</p>
             <Link href="/about#principal-message" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-gold-dark hover:underline">
               Read Full Message <FiArrowRight size={14} />
             </Link>

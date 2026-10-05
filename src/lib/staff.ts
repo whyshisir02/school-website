@@ -2,19 +2,10 @@ import fs from "fs";
 import path from "path";
 
 /**
- * ─── Staff & Faculty ────────────────────────────────────────────────────────
- * ADD / REMOVE / EDIT members here — every page (About, Home) updates
- * automatically. No other code changes needed.
- *
- * PHOTOS (no code changes needed either):
- *   Drop a square photo (≥400×400, jpg/png/webp) named exactly `<slug>.jpg`
- *   into  public/images/staff/   e.g.  public/images/staff/jb-magar.jpg
- *   The site picks it up automatically.
- *   No photo yet? A clean initials avatar is generated for you.
- *
- * ⚠️ NAMES BELOW ARE TEMPORARY PLACEHOLDERS so the layout can be reviewed.
- *    Replace each one with the real person's name + role before launch,
- *    or delete the line. Real photos go in public/images/staff/.
+ * Legacy roster and local-photo lookup for scripts/import-staff.ts.
+ * Current public staff profiles come from the database and are managed through
+ * Admin > Faculty & staff. Editing this roster does not update live profiles.
+ * Keep these records and local assets for existing installation migrations.
  */
 export type StaffMember = {
   slug: string; // filename for their photo, e.g. "jb-magar" → /images/staff/jb-magar.jpg
@@ -25,22 +16,6 @@ export type StaffMember = {
 
 export const STAFF: StaffMember[] = [
   { slug: "rajeen-magar", name: "Rajeen Magar", role: "Principal" },
-  // ── ⚠️ PLACEHOLDER STAFF — replace with real names/photos ──
-  { slug: "staff-02", name: "Staff Name 02", role: "Vice Principal" },
-  { slug: "staff-03", name: "Staff Name 03", role: "Academic Coordinator" },
-  { slug: "staff-04", name: "Staff Name 04", role: "Early Childhood Development", subject: "Nursery – KG" },
-  { slug: "staff-05", name: "Staff Name 05", role: "Teacher", subject: "English" },
-  { slug: "staff-06", name: "Staff Name 06", role: "Teacher", subject: "Mathematics" },
-  { slug: "staff-07", name: "Staff Name 07", role: "Teacher", subject: "Science" },
-  { slug: "staff-08", name: "Staff Name 08", role: "Teacher", subject: "Social Studies" },
-  { slug: "staff-09", name: "Staff Name 09", role: "Teacher", subject: "Nepali" },
-  { slug: "staff-10", name: "Staff Name 10", role: "Teacher", subject: "Computer Science" },
-  { slug: "staff-11", name: "Staff Name 11", role: "Teacher", subject: "Health & P.E." },
-  { slug: "staff-12", name: "Staff Name 12", role: "Sports Instructor" },
-  { slug: "staff-13", name: "Staff Name 13", role: "Librarian" },
-  { slug: "staff-14", name: "Staff Name 14", role: "Accounts & Administration" },
-  { slug: "staff-15", name: "Staff Name 15", role: "Front Office" },
-  { slug: "staff-16", name: "Staff Name 16", role: "Transport In-charge" },
 ];
 
 export function getStaffMember(slug: string): StaffMember | undefined {

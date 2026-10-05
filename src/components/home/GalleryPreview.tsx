@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/db";
+import { galleryThumbnail } from "@/lib/gallery-image-url";
 
 // NOTE: revalidate lives in the page (src/app/(public)/page.tsx), not here —
 // exporting it from a component has no effect.
@@ -32,7 +33,7 @@ export default async function GalleryPreview() {
               title={img.album.title}
             >
               <Image
-                src={img.url}
+                src={galleryThumbnail(img.url)}
                 alt={img.caption ?? img.album.title}
                 fill
                 sizes="(max-width: 640px) 50vw, 33vw"

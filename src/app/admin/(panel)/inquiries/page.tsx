@@ -1,9 +1,11 @@
+import { requirePageAccess } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/db";
 import InquiryRow from "@/components/admin/InquiryRow";
 
 export const dynamic = "force-dynamic";
 
 export default async function InquiriesPage() {
+  await requirePageAccess("INQUIRIES");
   const inquiries = await prisma.contactInquiry.findMany({
     orderBy: { createdAt: "desc" },
     take: 100,

@@ -1,5 +1,7 @@
+import { requirePageAccess } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/db";
 import NoticesManager from "@/components/admin/NoticesManager";
+import { pageNumber } from "@/lib/pagination";
 
 export const dynamic = "force-dynamic";
 
@@ -8,11 +10,12 @@ const PER_PAGE = 15;
 export default async function AdminNoticesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; edit?: string; new?: string; view?: string }>;
 }) {
+  await requirePageAccess("NOTICES");
   const sp = await searchParams;
   const q = sp.q?.trim() ?? "";
-  const page = Math.max(1, Number(sp.page ?? 1));
+  const page = pageNumber(sp.page);
 
   const where = q ? { title: { contains: q, mode: "insensitive" as const } } : {};
 
@@ -27,15 +30,19 @@ export default async function AdminNoticesPage({
     prisma.notice.count({ where }),
   ]);
 
+  const initialEditing = sp.edit ? await prisma.notice.findUnique({ where: { id: sp.edit }, select: { id: true, title: true, category: true, isPublished: true, content: true } }) : null;
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
   return (
     <NoticesManager
+      initialEditing={initialEditing}
+      focusEditor={!!sp.edit || sp.new === "1"}
       notices={notices}
       q={q}
       page={page}
       totalPages={totalPages}
       total={total}
+      initialMobileView={sp.edit || sp.new === "1" ? "write" : sp.view === "browse" || !!q || page > 1 ? "browse" : "write"}
     />
   );
 }

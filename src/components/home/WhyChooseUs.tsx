@@ -17,14 +17,14 @@ const cards = [
   {
     icon: <FiAward size={28} />,
     title: "Secondary (6–10)",
-    desc: "SEE-focused teaching with consistent outstanding results.",
+    desc: "Learning in the upper grades with preparation for SEE.",
     href: "/academics#secondary",
   },
   {
     icon: <FiHome size={28} />,
     title: "Facilities",
-    desc: "Library, science lab, computer lab, sports & transport.",
-    href: "/academics#facilities",
+    desc: "Contact the school to discuss facilities and arrange a campus visit.",
+    href: "/contact",
   },
 ];
 

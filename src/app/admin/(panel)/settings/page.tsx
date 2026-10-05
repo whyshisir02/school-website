@@ -1,9 +1,11 @@
+import { requirePageAccess } from "@/lib/auth-helpers";
 import { getSiteSettings } from "@/lib/settings";
 import SettingsForm from "@/components/admin/SettingsForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function SettingsGeneralPage() {
+  await requirePageAccess("SCHOOL_SETTINGS");
   const settings = await getSiteSettings();
 
   return (

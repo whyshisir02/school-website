@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FiLock } from "react-icons/fi";
+import { signOut } from "next-auth/react";
 import { changePassword } from "@/app/admin/(panel)/settings/security-actions";
 
 const inputCls =
@@ -19,13 +20,15 @@ export default function ChangePasswordForm() {
         setError("");
         setSaved(false);
         const res = await changePassword(fd);
-        setPending(false);
         if (res.ok) {
+          // The password change also revoked this session (tokenVersion bump),
+          // so send the admin back to the login screen with the new password.
           setSaved(true);
-          (document.getElementById("change-password-form") as HTMLFormElement | null)?.reset();
-        } else {
-          setError(res.error ?? "Could not change password. Please try again.");
+          setTimeout(() => signOut({ callbackUrl: "/admin/login" }), 1400);
+          return;
         }
+        setPending(false);
+        setError(res.error ?? "Could not change password. Please try again.");
       }}
       id="change-password-form"
       className="space-y-4 rounded-xl bg-white p-6 shadow-sm"
@@ -77,7 +80,7 @@ export default function ChangePasswordForm() {
         <button type="submit" disabled={pending} className="btn-primary !py-2.5 text-sm disabled:opacity-60">
           <FiLock /> {pending ? "Updating…" : "Update Password"}
         </button>
-        {saved && <p className="text-sm font-medium text-green-600">Password updated.</p>}
+        {saved && <p className="text-sm font-medium text-green-600">Password updated — signing you out…</p>}
         {error && <p className="text-sm font-medium text-red-600">{error}</p>}
       </div>
     </form>

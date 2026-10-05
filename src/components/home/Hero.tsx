@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { FiArrowRight } from "react-icons/fi";
 import { FaGraduationCap } from "react-icons/fa";
-import { SCHOOL } from "@/lib/school";
+
 import { getSiteSettings, getVisibleStats } from "@/lib/settings";
 import HeroSlideshow from "./HeroSlideshow";
 
@@ -13,7 +13,7 @@ import HeroSlideshow from "./HeroSlideshow";
  * white text; bright, wide shots of the building / assembly work best.
  */
 export default async function Hero() {
-  const [stats, { heroSlides }] = await Promise.all([
+  const [stats, { heroSlides, branding }] = await Promise.all([
     getVisibleStats(),
     getSiteSettings(),
   ]);
@@ -22,26 +22,20 @@ export default async function Hero() {
       {/* Full-bleed slideshow background (admin-editable at /admin/settings) */}
       <HeroSlideshow slides={heroSlides} background />
 
-      {/* Left-heavy navy gradient overlay — text side is darkest,
-          photos stay visible on the right. Flips vertical on mobile
-          where text spans the full width. */}
-      <div aria-hidden="true" className="hero-overlay absolute inset-0 -z-10" />
 
       {/* Content */}
-      <div className="container-page relative flex min-h-[75vh] items-center py-20">
-        <div className="max-w-2xl">
+      <div className="container-page pointer-events-none relative z-10 flex min-h-[75vh] items-center py-20 lg:min-h-[82vh] lg:items-start">
+        <div className="pointer-events-auto max-w-2xl">
           {/* Evergreen badge — no seasonal "admissions open" claim.
               Admission details live on the Contact page (Get in Touch button). */}
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-navy/70 px-4 py-1.5 text-sm font-semibold text-gold-light ring-1 ring-gold/50 backdrop-blur-sm">
-            <FaGraduationCap size={14} /> {SCHOOL.motto}
-          </span>
+          {branding.motto && <span className="inline-flex items-center gap-1.5 rounded-full bg-navy/70 px-4 py-1.5 text-sm font-semibold text-gold-light ring-1 ring-gold/50 backdrop-blur-sm">
+            <FaGraduationCap size={14} /> {branding.motto}
+          </span>}
           <h1 className="hero-text mt-5 text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl">
-            Nurturing Minds From <span className="text-gold">Nursery</span> to{" "}
-            <span className="text-gold">Class 10</span>
+            {branding.headline === "Nurturing Minds From Nursery to Class 10" ? <>Nurturing Minds From <span className="text-gold">Nursery</span> to <span className="text-gold">Class 10</span></> : branding.headline}
           </h1>
           <p className="hero-text mt-4 text-lg font-medium text-white">
-            Quality English-medium education with experienced teachers, modern facilities,
-            and a caring environment in the heart of {SCHOOL.location}.
+            {branding.description}
           </p>
           <div className="mt-7 flex flex-wrap gap-4">
             <Link href="/academics" className="btn-primary">
@@ -51,17 +45,15 @@ export default async function Hero() {
               View Notices
             </Link>
           </div>
-          {/* Trust stats — inside the gradient zone so they never sit over
-              bare photo. They repeat in the StatsBanner further down the
-              page; that's intentional reinforcement, not duplication. */}
-          <div className="hero-text mt-10 flex flex-wrap gap-x-10 gap-y-4">
+          {/* Publish only school-verified statistics. */}
+          {stats.length > 0 && <div className="hero-text mt-8 flex flex-wrap gap-x-8 gap-y-4">
             {stats.slice(0, 3).map((s) => (
               <div key={s.label}>
                 <div className="font-heading text-2xl font-bold text-gold">{s.value}</div>
                 <div className="text-xs font-medium uppercase tracking-wide text-slate-100">{s.label}</div>
               </div>
             ))}
-          </div>
+          </div>}
         </div>
       </div>
     </section>

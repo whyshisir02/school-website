@@ -1,9 +1,13 @@
+import { requirePageAccess } from "@/lib/auth-helpers";
 import { getSiteSettings } from "@/lib/settings";
 import HeroSlidesAdmin from "@/components/admin/HeroSlidesAdmin";
+import { cleanUnusedMedia } from "@/lib/media-cleanup";
 
 export const dynamic = "force-dynamic";
 
 export default async function SettingsHeroPage() {
+  await requirePageAccess("HERO");
+  await cleanUnusedMedia().catch(() => null);
   const settings = await getSiteSettings();
 
   return (

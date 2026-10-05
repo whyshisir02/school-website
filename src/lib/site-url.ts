@@ -1,18 +1,7 @@
-/**
- * Canonical origin for the site. Used by metadataBase, robots.txt and
- * sitemap.xml — all three must agree, or search engines get conflicting
- * canonical/sitemap signals.
- *
- * Set NEXT_PUBLIC_SITE_URL in the deploy environment (e.g.
- * "https://easternview.edu.np"). The fallback keeps local dev and builds
- * working without it, but should never be relied on in production: if the
- * school ends up on a different domain, canonical URLs would silently point
- * at the wrong host.
- */
-const FALLBACK = "https://easternview.edu.np";
-
+/** Hosting configuration, never another school's default domain. */
 export function siteUrl(): string {
-  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim() || FALLBACK;
-  // Strip a trailing slash so callers can safely do `${siteUrl()}/path`.
-  return raw.replace(/\/+$/, "");
+  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim() || process.env.NEXTAUTH_URL?.trim() || process.env.URL?.trim() || "http://localhost:3000";
+  const url = new URL(raw);
+  if (!["https:", "http:"].includes(url.protocol) || url.username || url.password) throw new Error("Configure a valid school site URL.");
+  return url.origin;
 }

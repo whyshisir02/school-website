@@ -1,9 +1,12 @@
+import { getSiteSettings } from "@/lib/settings";
+import { schoolInitials } from "@/lib/school-branding";
 import { ImageResponse } from "next/og";
-import { SCHOOL } from "@/lib/school";
+
 import { logoDataUri } from "@/lib/brand-assets";
 
-export const alt = `${SCHOOL.name} — ${SCHOOL.tagline}`;
+export const alt = "School information";
 export const size = { width: 1200, height: 630 };
+export const dynamic = "force-dynamic";
 export const contentType = "image/png";
 
 /**
@@ -17,8 +20,9 @@ export const contentType = "image/png";
  * the single most-shared asset on the site — the worst place for a figure the
  * school hasn't confirmed.
  */
-export default function OpengraphImage() {
-  const logo = logoDataUri();
+export default async function OpengraphImage() {
+  const school = await getSiteSettings();
+  const logo = await logoDataUri(school.branding.logo);
 
   return new ImageResponse(
     (
@@ -73,12 +77,12 @@ export default function OpengraphImage() {
                 letterSpacing: -2,
               }}
             >
-              EV
+              {schoolInitials(school.branding.shortName || school.name)}
             </div>
           )}
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", fontSize: 34, fontWeight: 700, color: "#FFFFFF" }}>
-              {SCHOOL.shortName}
+              {school.name}
             </div>
             {/* Satori requires an explicit display on ANY div with more than one
                 child — and a text node plus a {expression} counts as two. Every
@@ -92,7 +96,7 @@ export default function OpengraphImage() {
                 textTransform: "uppercase",
               }}
             >
-              {`English School · ${SCHOOL.location}`}
+              {school.branding.subtitle || school.branding.location}
             </div>
           </div>
         </div>
@@ -109,11 +113,11 @@ export default function OpengraphImage() {
               maxWidth: 940,
             }}
           >
-            Nurturing Minds From Nursery to Class 10
+            {school.branding.headline}
           </div>
           <div style={{ display: "flex", height: 6, width: 200, background: "#C5A021" }} />
           <div style={{ display: "flex", fontSize: 26, color: "#CBD5E1" }}>
-            {SCHOOL.motto}
+            {school.branding.motto}
           </div>
         </div>
 
@@ -129,8 +133,8 @@ export default function OpengraphImage() {
             paddingTop: 24,
           }}
         >
-          <div style={{ display: "flex" }}>{SCHOOL.address}</div>
-          <div style={{ display: "flex" }}>Established {SCHOOL.established} B.S.</div>
+          <div style={{ display: "flex" }}>{school.address}</div>
+          <div style={{ display: "flex" }}>{school.branding.established ? `Established ${school.branding.established} B.S.` : ""}</div>
         </div>
       </div>
     ),

@@ -1,4 +1,4 @@
-import { SCHOOL } from "@/lib/school";
+
 import { getSiteSettings } from "@/lib/settings";
 
 export async function SchoolJsonLd() {
@@ -7,27 +7,21 @@ export async function SchoolJsonLd() {
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
     name: s.name,
-    description:
-      `Quality English-medium education from Nursery to Class 10 in ${SCHOOL.location}.`,
+    description: s.branding.description,
     address: {
       "@type": "PostalAddress",
       streetAddress: s.address,
       addressCountry: "NP",
     },
-    geo: {
-      "@type": "GeoCoordinates",
-      latitude: 26.6528334,
-      longitude: 87.4653822,
-    },
     hasMap: s.mapLink,
     telephone: s.phone,
     email: s.email,
-    sameAs: [SCHOOL.facebook],
+    sameAs: [s.branding.facebook, s.branding.youtube].filter(Boolean),
   };
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
     />
   );
 }

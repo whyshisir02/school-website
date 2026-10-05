@@ -1,30 +1,15 @@
 import { cache } from "react";
 import { prisma } from "@/lib/db";
-import { SCHOOL, STATS, PRINCIPAL, CHAIRMAN, HERO_SLIDES } from "@/lib/school";
+import { normalizeBranding, type SchoolBranding } from "@/lib/school-branding";
 
-/**
- * DB-first site settings, with src/lib/school.ts as the fallback.
- *
- * The `Settings` table (single row, id="main") holds the handful of fields the
- * school actually edits from /admin/settings — contact info, map, and the
- * homepage stat tiles. Everything not stored there (registered name history,
- * regd. no., principal/chairman, motto, tagline, Facebook, letterhead identity)
- * stays static in school.ts because it rarely changes and/or is used by client
- * components and build-time metadata.
- *
- * `cache()` dedupes the query within a single render pass, so any number of
- * server components can call getSiteSettings()/getStats() freely and hit the DB
- * once. The `.catch(() => null)` keeps the site rendering (on school.ts values)
- * if the DB is unreachable or the row doesn't exist yet — including at build
- * time before anyone has saved settings.
- */
+/** Database-owned school content. Missing settings never borrow another school's identity. */
 
-export type StatItem = { value: string; label: string; show: boolean };
+export type StatItem = { value: string; label: string; show: boolean; verified: boolean };
 
 /**
  * A hero slide as consumed by the slideshow. `src` may be a Cloudinary URL
  * (admin-uploaded, carries a `publicId` for deletion) or a local /public path
- * (the school.ts fallback slides, no publicId).
+ * (migrated local slides have no publicId).
  */
 export type HeroSlideItem = {
   src: string;
@@ -34,6 +19,7 @@ export type HeroSlideItem = {
 };
 
 export type SiteSettings = {
+  branding: SchoolBranding;
   name: string;
   address: string;
   phone: string;
@@ -42,7 +28,7 @@ export type SiteSettings = {
   mapEmbed: string;
   stats: StatItem[];
   heroSlides: HeroSlideItem[];
-  // Leadership messages (see PRINCIPAL/CHAIRMAN in school.ts for the defaults).
+  // Optional leadership content.
   principalExcerpt: string;
   principalMessageHtml: string;
   chairmanName: string;
@@ -50,19 +36,11 @@ export type SiteSettings = {
   chairmanMessageHtml: string;
 };
 
-/** school.ts STATS → the editable shape (all shown by default). */
-const FALLBACK_STATS: StatItem[] = STATS.map((s) => ({
-  value: s.value,
-  label: s.label,
-  show: true,
-}));
+/** Empty editable stat slots for a new school. */
+const FALLBACK_STATS: StatItem[] = Array.from({ length: 4 }, () => ({ value: "", label: "", show: false, verified: false }));
 
-/** school.ts HERO_SLIDES → the editable shape (local /public paths, no publicId). */
-const FALLBACK_HERO: HeroSlideItem[] = HERO_SLIDES.map((s) => ({
-  src: s.src,
-  alt: s.alt,
-  objectPosition: s.objectPosition,
-}));
+/** New schools start without another school's photos. */
+const FALLBACK_HERO: HeroSlideItem[] = [];
 
 /** Defensively coerce a stored JSON value into a clean StatItem[]. */
 function normalizeStats(raw: unknown): StatItem[] {
@@ -72,7 +50,8 @@ function normalizeStats(raw: unknown): StatItem[] {
     .map((r) => ({
       value: typeof r.value === "string" ? r.value : "",
       label: typeof r.label === "string" ? r.label : "",
-      show: r.show !== false, // default visible
+      show: r.show !== false, // Publication also requires explicit verification.
+      verified: r.verified === true,
     }))
     .filter((s) => s.value.trim() !== "" || s.label.trim() !== "");
   return items.length > 0 ? items : FALLBACK_STATS;
@@ -91,7 +70,7 @@ function normalizeHeroSlides(raw: unknown): HeroSlideItem[] {
       publicId: typeof r.publicId === "string" ? r.publicId : undefined,
     }))
     .filter((s) => s.src.trim() !== "");
-  return items.length > 0 ? items : FALLBACK_HERO;
+  return items;
 }
 
 /** Narrow an unknown JSON value to a plain object (never an array/null). */
@@ -109,24 +88,25 @@ export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
   const chairman = asObject(row?.chairman);
 
   return {
-    name: row?.schoolName?.trim() || SCHOOL.name,
-    address: row?.address?.trim() || SCHOOL.address,
-    phone: row?.phone?.trim() || SCHOOL.phone,
-    email: row?.email?.trim() || SCHOOL.email,
-    mapLink: row?.mapLink?.trim() || SCHOOL.mapLink,
-    mapEmbed: row?.mapEmbed?.trim() || SCHOOL.mapEmbed,
+    branding: normalizeBranding(row?.branding),
+    name: row?.schoolName?.trim() || "School",
+    address: row?.address?.trim() || "",
+    phone: row?.phone?.trim() || "",
+    email: row?.email?.trim() || "",
+    mapLink: row?.mapLink?.trim() || "",
+    mapEmbed: row?.mapEmbed?.trim() || "",
     stats: normalizeStats(row?.stats),
     heroSlides: normalizeHeroSlides(row?.heroSlides),
-    principalExcerpt: str(principal.excerpt).trim() || PRINCIPAL.excerpt,
-    principalMessageHtml: str(principal.messageHtml).trim() || PRINCIPAL.messageHtml,
-    chairmanName: str(chairman.name).trim() || CHAIRMAN.name,
-    chairmanTitle: str(chairman.title).trim() || CHAIRMAN.title,
-    chairmanMessageHtml: str(chairman.messageHtml).trim() || CHAIRMAN.messageHtml,
+    principalExcerpt: str(principal.excerpt).trim() || "",
+    principalMessageHtml: str(principal.messageHtml).trim() || "",
+    chairmanName: str(chairman.name).trim() || "",
+    chairmanTitle: str(chairman.title).trim() || "",
+    chairmanMessageHtml: str(chairman.messageHtml).trim() || "",
   };
 });
 
 /** Convenience: only the stat tiles the admin has marked visible. */
 export async function getVisibleStats(): Promise<StatItem[]> {
   const { stats } = await getSiteSettings();
-  return stats.filter((s) => s.show);
+  return stats.filter((s) => s.show && s.verified);
 }

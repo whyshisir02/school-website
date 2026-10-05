@@ -21,10 +21,10 @@ export default function NoticeRow({ notice, onEdit }: Props) {
   const [pending, startTransition] = useTransition();
 
   const btn =
-    "shrink-0 rounded-lg p-2 disabled:opacity-50 transition";
+    "flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg p-2 transition disabled:opacity-50";
 
   return (
-    <li className="flex items-center justify-between gap-4 px-5 py-3">
+    <li className="flex items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-5">
       <div className="min-w-0">
         <p className="truncate text-sm font-medium">{notice.title}</p>
         <p className="text-xs text-slate-400">

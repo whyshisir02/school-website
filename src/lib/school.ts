@@ -66,6 +66,13 @@ export type HeroSlide = {
 
 export const HERO_SLIDES: HeroSlide[] = [
   {
+    src: "/images/hero/hero-building.jpg",
+    alt: "Shree Eastern View English School building and signboard in Belbari-10, Bhaunne, Morang",
+    // Bias the crop upward so the signboard/building stays in frame when the
+    // full-bleed hero crops the top/bottom of this wide shot.
+    objectPosition: "center 38%",
+  },
+  {
     src: "/images/hero/hero-1.jpg",
     alt: "Students in traditional Nepali dress welcoming guests at Shree Eastern View English School",
   },

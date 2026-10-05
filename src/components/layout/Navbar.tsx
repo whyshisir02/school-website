@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import SchoolLogo from "@/components/SchoolLogo";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FiMenu, FiX, FiPhone, FiMail } from "react-icons/fi";
 import { SiFacebook } from "react-icons/si";
-import { SCHOOL } from "@/lib/school";
+import type { SchoolBranding } from "@/lib/school-branding";
 
 const links = [
   { href: "/", label: "Home" },
@@ -17,7 +17,7 @@ const links = [
   { href: "/contact", label: "Contact" },
 ];
 
-export default function Navbar() {
+export default function Navbar({ name, phone, email, branding }: { name: string; phone: string; email: string; branding: SchoolBranding }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -38,6 +38,24 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const menu = document.getElementById("public-menu");
+    const controls = () => Array.from(menu?.querySelectorAll<HTMLElement>("a[href], button:not(:disabled)") ?? []);
+    controls()[0]?.focus();
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+      if (event.key !== "Tab") return;
+      const items = controls(); const first = items[0]; const last = items.at(-1);
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = overflow; previous?.focus(); };
+  }, [open]);
 
   if (pathname.startsWith("/admin")) return null;
 
@@ -50,20 +68,13 @@ export default function Navbar() {
       <div className={`container-page flex items-center justify-between transition-all ${scrolled ? "h-16" : "h-20"}`}>
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
-          <Image
-            src="/images/logo.png"
-            alt={`${SCHOOL.name} logo`}
-            width={48}
-            height={48}
-            priority
-            className="h-12 w-12 rounded-full object-contain"
-          />
+          <SchoolLogo name={name} url={branding.logo?.url} />
           <div className="leading-tight">
             <div className="font-heading text-base font-bold text-navy sm:text-lg">
-              Shree Eastern View
+              {name}
             </div>
             <div className="text-[11px] font-medium tracking-wide text-slate-500">
-              ENGLISH SCHOOL · {SCHOOL.location.toUpperCase()}
+              {branding.subtitle || branding.location}
             </div>
           </div>
         </Link>
@@ -101,6 +112,8 @@ export default function Navbar() {
           className="rounded-lg p-2 text-navy lg:hidden"
           onClick={() => setOpen(!open)}
           aria-label="Toggle menu"
+          aria-expanded={open}
+          aria-controls="public-menu"
         >
           {open ? <FiX size={24} /> : <FiMenu size={24} />}
         </button>
@@ -113,7 +126,7 @@ export default function Navbar() {
         }`}
         onClick={() => setOpen(false)}
       />
-      <aside
+      <aside id="public-menu" inert={!open}
         className={`fixed right-0 top-0 z-50 flex h-full w-72 flex-col bg-white shadow-xl transition-transform duration-300 lg:hidden ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
@@ -149,11 +162,11 @@ export default function Navbar() {
           </Link>
         </nav>
         <div className="space-y-2 border-t p-5 text-xs text-slate-600">
-          <p className="flex items-center gap-2"><FiPhone size={12} /> {SCHOOL.phone}</p>
-          <p className="flex items-center gap-2"><FiMail size={12} /> {SCHOOL.email}</p>
-          <a href={SCHOOL.facebook} className="flex items-center gap-2" target="_blank" rel="noopener noreferrer">
+          <p className="flex items-center gap-2"><FiPhone size={12} /> {phone}</p>
+          <p className="flex items-center gap-2"><FiMail size={12} /> {email}</p>
+          {branding.facebook && <a href={branding.facebook} className="flex items-center gap-2" target="_blank" rel="noopener noreferrer">
             <SiFacebook size={12} /> Facebook Page
-          </a>
+          </a>}
         </div>
       </aside>
     </header>

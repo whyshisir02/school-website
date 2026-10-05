@@ -5,7 +5,8 @@ import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import Underline from "@tiptap/extension-underline";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { compressPhoto } from "@/lib/compress-photo";
 import {
   FiBold, FiItalic, FiUnderline, FiList, FiLink, FiImage, FiLoader,
   FiRotateCcw, FiRotateCw,
@@ -28,12 +29,14 @@ type Props = {
   initialHTML: string;
   /** Reuses the notice image upload route; returns the hosted URL. */
   uploadUrl: string;
+  onChange?: () => void;
 };
 
-export default function RichTextEditor({ name, initialHTML, uploadUrl }: Props) {
+export default function RichTextEditor({ name, initialHTML, uploadUrl, onChange }: Props) {
   const [html, setHtml] = useState(initialHTML);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const editor = useEditor({
     // Next.js SSR: without this, hydration mismatches on the contentEditable.
@@ -62,14 +65,16 @@ export default function RichTextEditor({ name, initialHTML, uploadUrl }: Props) 
     content: initialHTML || "",
     editorProps: {
       attributes: {
+        "aria-label": "Notice message",
         class:
-          "prose prose-slate max-w-none min-h-[220px] rounded-b-lg border border-t-0 border-slate-200 px-4 py-3 text-sm outline-none focus:border-gold",
+          "prose prose-slate max-w-none min-h-[260px] rounded-b-lg border border-t-0 border-slate-200 px-4 py-3 text-base outline-none focus:border-gold sm:min-h-[220px] sm:text-sm",
       },
     },
     onUpdate: ({ editor }) => {
       // Treat a visually-empty doc as truly empty so `required` validation and
       // the sanitizer agree — TipTap otherwise emits "<p></p>".
-      setHtml(editor.getText().trim() ? editor.getHTML() : "");
+      setHtml(editor.getText().trim() || editor.getHTML().includes("<img") ? editor.getHTML() : "");
+      onChange?.();
     },
   });
 
@@ -78,7 +83,7 @@ export default function RichTextEditor({ name, initialHTML, uploadUrl }: Props) 
     setUploadError("");
     try {
       const fd = new FormData();
-      fd.append("file", file);
+      fd.append("file", await compressPhoto(file));
       const res = await fetch(uploadUrl, { method: "POST", body: fd });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Upload failed");
@@ -108,7 +113,7 @@ export default function RichTextEditor({ name, initialHTML, uploadUrl }: Props) 
       <input type="hidden" name={name} value={html} />
 
       {editor && (
-        <div className="flex flex-wrap items-center gap-1 rounded-t-lg border border-slate-200 bg-slate-50 px-2 py-1.5">
+        <div role="toolbar" aria-label="Notice formatting" className="flex flex-nowrap items-center gap-1 overflow-x-auto rounded-t-lg border border-slate-200 bg-slate-50 px-2 py-1.5 sm:flex-wrap">
           <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive("bold")} label="Bold">
             <FiBold size={15} />
           </ToolbarButton>
@@ -142,20 +147,14 @@ export default function RichTextEditor({ name, initialHTML, uploadUrl }: Props) 
           <ToolbarButton onClick={addLink} active={editor.isActive("link")} label="Add link">
             <FiLink size={15} />
           </ToolbarButton>
-          <label className="flex cursor-pointer items-center rounded p-1.5 text-slate-600 hover:bg-slate-200" title="Insert image">
+          <button type="button" onClick={() => imageInputRef.current?.click()} disabled={uploading} aria-label="Insert image" title="Insert image" className="flex h-11 min-w-11 shrink-0 items-center justify-center rounded text-slate-600 hover:bg-slate-200 disabled:opacity-40 sm:h-8 sm:min-w-8">
             {uploading ? <FiLoader className="animate-spin" size={15} /> : <FiImage size={15} />}
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="hidden"
-              disabled={uploading}
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) onPickImage(f);
-                e.target.value = "";
-              }}
-            />
-          </label>
+          </button>
+          <input ref={imageInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" tabIndex={-1} disabled={uploading} onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void onPickImage(f);
+            e.target.value = "";
+          }} />
 
           <Divider />
 
@@ -169,6 +168,7 @@ export default function RichTextEditor({ name, initialHTML, uploadUrl }: Props) 
       )}
 
       <EditorContent editor={editor} />
+      <p className="mt-1 text-xs text-slate-500">Photos: JPG/PNG/WebP up to 20 MB, automatically compressed to 700 KB or less.</p>
 
       {uploadError && <p className="mt-1 text-xs text-red-600">{uploadError}</p>}
     </div>
@@ -191,7 +191,7 @@ function ToolbarButton({
       disabled={disabled}
       aria-label={label}
       title={label}
-      className={`flex h-8 min-w-8 items-center justify-center rounded px-1.5 transition disabled:opacity-30 ${
+      className={`flex h-11 min-w-11 shrink-0 items-center justify-center rounded px-1.5 transition disabled:opacity-30 sm:h-8 sm:min-w-8 ${
         active ? "bg-navy text-white" : "text-slate-600 hover:bg-slate-200"
       }`}
     >

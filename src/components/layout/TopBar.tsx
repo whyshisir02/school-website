@@ -1,6 +1,6 @@
 import { FiPhone, FiMail } from "react-icons/fi";
 import { SiFacebook } from "react-icons/si";
-import { SCHOOL } from "@/lib/school";
+
 import { getSiteSettings } from "@/lib/settings";
 
 export default async function TopBar() {
@@ -16,9 +16,9 @@ export default async function TopBar() {
             <FiMail size={12} /> {s.email}
           </a>
         </div>
-        <a href={SCHOOL.facebook} target="_blank" rel="noopener noreferrer" className="hover:text-gold" aria-label="Facebook">
+        {s.branding.facebook && <a href={s.branding.facebook} target="_blank" rel="noopener noreferrer" className="hover:text-gold" aria-label="Facebook">
           <SiFacebook size={14} />
-        </a>
+        </a>}
       </div>
     </div>
   );

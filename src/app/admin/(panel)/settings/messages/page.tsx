@@ -1,9 +1,11 @@
+import { requirePageAccess } from "@/lib/auth-helpers";
 import { getSiteSettings } from "@/lib/settings";
 import MessagesForm from "@/components/admin/MessagesForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function SettingsMessagesPage() {
+  await requirePageAccess("MESSAGES");
   const settings = await getSiteSettings();
 
   return (

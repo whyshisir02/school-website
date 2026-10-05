@@ -2,6 +2,7 @@ import TopBar from "@/components/layout/TopBar";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import NotFoundBody from "@/components/NotFoundBody";
+import { getSiteSettings } from "@/lib/settings";
 
 /**
  * Catches URLs that match no route at all (e.g. /notces). Next renders this
@@ -12,11 +13,12 @@ import NotFoundBody from "@/components/NotFoundBody";
  * notFound() thrown from inside a public page is handled by
  * app/(public)/not-found.tsx instead, which reuses the group layout.
  */
-export default function NotFound() {
+export default async function NotFound() {
+  const settings = await getSiteSettings();
   return (
     <>
       <TopBar />
-      <Navbar />
+      <Navbar name={settings.name} phone={settings.phone} email={settings.email} branding={settings.branding} />
       <main>
         <NotFoundBody />
       </main>

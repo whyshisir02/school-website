@@ -1,17 +1,16 @@
+import { getSiteSettings } from "@/lib/settings";
+import { schoolInitials } from "@/lib/school-branding";
 import { ImageResponse } from "next/og";
 import { logoDataUri } from "@/lib/brand-assets";
 
 export const size = { width: 512, height: 512 };
+export const dynamic = "force-dynamic";
 export const contentType = "image/png";
 
-/**
- * Browser tab / bookmark icon. Generated rather than a committed .ico for one
- * reason: the school has no logo file yet, and a generated "EV" monogram is far
- * better than Next's default blank icon. As soon as public/images/logo.png
- * exists this picks it up automatically — no code change.
- */
-export default function Icon() {
-  const logo = logoDataUri();
+/** Browser icon follows saved school branding. */
+export default async function Icon() {
+  const school = await getSiteSettings();
+  const logo = await logoDataUri(school.branding.logo);
 
   if (logo) {
     return new ImageResponse(
@@ -50,7 +49,7 @@ export default function Icon() {
           letterSpacing: -8,
         }}
       >
-        EV
+        {schoolInitials(school.branding.shortName || school.name)}
       </div>
     ),
     size,

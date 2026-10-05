@@ -20,11 +20,45 @@ enum NoticeCategory {
 model User {
   id             String    @id @default(cuid())
   email          String    @unique
+  name           String    @default("")
   passwordHash   String
+  passwordReady  Boolean   @default(true)
   role           String    @default("ADMIN")
+  permissions    String[]  @default(["GALLERY", "NOTICES", "FACULTY"])
+  isActive       Boolean   @default(true)
   failedAttempts Int       @default(0)
   lockedUntil    DateTime?
+  // Bumped to invalidate every issued JWT at once ("log out all devices" and on
+  // password change). Each token carries the version it was minted with; a
+  // request whose token.ver != this value is treated as signed out. See auth.ts.
+  tokenVersion   Int       @default(0)
   createdAt      DateTime  @default(now())
+  setupTokens    AccountSetupToken[]
+}
+
+model AccountSetupToken {
+  id           String   @id @default(cuid())
+  tokenHash    String   @unique
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenVersion Int
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  actorId    String?
+  actorEmail String
+  actorRole  String
+  action     String
+  area       String
+  targetId   String?
+  details    Json
+
+  @@index([createdAt, id])
+  @@index([area, createdAt, id])
 }
 
 model Notice {
@@ -57,11 +91,19 @@ model GalleryImage {
   url      String
   publicId String? // Cloudinary public_id for deletion
   caption  String?
+  eventBsYear Int? // Year the photographed event happened, not the upload year
   order    Int          @default(0)
   createdAt DateTime    @default(now())
+
+  @@index([albumId, createdAt, id])
+  @@index([createdAt, id])
+  @@index([eventBsYear, createdAt, id])
+  @@index([albumId, eventBsYear, createdAt, id])
 }
 
 model Settings {
+  announcement Json? // saved draft and published image popup
+  branding   Json?   // school identity and public copy, managed by Super Admin
   id         String  @id @default("main")
   schoolName String
   address    String
@@ -73,6 +115,40 @@ model Settings {
   principal  Json?   // { excerpt, messageHtml } — home quote + full About letter
   chairman   Json?   // { name, title, messageHtml } — About chairman message
   heroSlides Json?   // homepage hero photos: [{ url, alt, publicId?, objectPosition? }]
+  principalStaffId String?
+  principalStaff StaffMember? @relation(fields: [principalStaffId], references: [id], onDelete: SetNull)
+}
+
+enum StaffGroup {
+  LEADERSHIP
+  TEACHING
+  SUPPORT
+}
+
+enum StaffStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model StaffMember {
+  id             String @id @default(cuid())
+  name           String
+  position       String
+  group          StaffGroup @default(TEACHING)
+  status         StaffStatus @default(DRAFT)
+  subject        String @default("")
+  qualifications String @default("")
+  bio            String @default("") @db.Text
+  photoUrl       String?
+  publicId       String?
+  order          Int @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  principalFor   Settings[]
+
+  @@index([status, group, order, id])
+  @@index([publicId])
 }
 
 model ContactInquiry {
@@ -84,4 +160,12 @@ model ContactInquiry {
   createdAt DateTime @default(now())
 
   @@index([isRead, createdAt])
+}
+
+// Tracks unfinished uploads and retries failed Cloudinary deletions.
+model MediaCleanup {
+  publicId String @id
+  notBefore DateTime @default(now())
+  createdAt DateTime @default(now())
+  @@index([notBefore])
 }

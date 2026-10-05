@@ -1,16 +1,16 @@
+import { getSiteSettings } from "@/lib/settings";
 import type { Metadata } from "next";
 import PageHeader from "@/components/PageHeader";
 import { AdmissionCompact } from "@/components/AdmissionInfo";
-import { SCHOOL } from "@/lib/school";
 import {
   FiBookOpen, FiMonitor, FiThermometer, FiGrid, FiTruck, FiCoffee,
   FiSmile, FiAward, FiClipboard, FiClock, FiUsers,
 } from "react-icons/fi";
 
-export const metadata: Metadata = {
-  title: "Academics",
-  description: "Programs from Nursery to Class 10, facilities and school timing at Eastern View.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await getSiteSettings();
+  return { title: "Academics", description: `Programs and learning at ${s.name}.` };
+}
 
 const tabs = [
   {
@@ -51,7 +51,8 @@ const facilities = [
   { icon: <FiCoffee size={24} />, name: "Cafeteria", desc: "Clean & hygienic meals" },
 ];
 
-export default function AcademicsPage() {
+export default async function AcademicsPage() {
+  const school = await getSiteSettings();
   return (
     <>
       <PageHeader title="Academics" breadcrumb="Academics" />
@@ -64,7 +65,7 @@ export default function AcademicsPage() {
               Learning That Fits Every Stage
             </h2>
             <p className="mt-4 leading-relaxed text-slate-600">
-              {SCHOOL.shortName} teaches from Nursery through Class 10 (SEE) — a single,
+              {school.name} teaches from Nursery through Class 10 (SEE) — a single,
               continuous path from a child&apos;s first day at school to their first
               national board exam. Our classes are small, our teachers know every
               student by name, and lessons are taught in English and Nepali so children

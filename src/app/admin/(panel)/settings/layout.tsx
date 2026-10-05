@@ -1,15 +1,11 @@
 import SettingsTabs from "@/components/admin/SettingsTabs";
-
+import { requirePageAccess, accessFromSession } from "@/lib/auth-helpers";
 export const dynamic = "force-dynamic";
-
-// Shared shell for every /admin/settings/* page: the title and the tab strip
-// render once here; each child page supplies just its own section below.
-export default function SettingsLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="max-w-3xl">
-      <h1 className="text-2xl font-bold">Site Settings</h1>
-      <SettingsTabs />
-      <div className="mt-8">{children}</div>
-    </div>
-  );
+export default async function SettingsLayout({ children }: { children: React.ReactNode }) {
+  const access = accessFromSession(await requirePageAccess());
+  return <div className="max-w-5xl">
+    <p className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-500">Make it yours</p>
+    <h1 className="font-heading text-3xl font-bold">{access.role === "SUPER_ADMIN" ? "Website settings" : "Account and assigned settings"}</h1>
+    <SettingsTabs access={access} /><div className="mt-6">{children}</div>
+  </div>;
 }

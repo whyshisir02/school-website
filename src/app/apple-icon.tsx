@@ -1,7 +1,10 @@
+import { getSiteSettings } from "@/lib/settings";
+import { schoolInitials } from "@/lib/school-branding";
 import { ImageResponse } from "next/og";
 import { logoDataUri } from "@/lib/brand-assets";
 
 export const size = { width: 180, height: 180 };
+export const dynamic = "force-dynamic";
 export const contentType = "image/png";
 
 /**
@@ -9,8 +12,9 @@ export const contentType = "image/png";
  * canvas edge to edge with no transparency and no rounded corners — iOS applies
  * its own mask, and a transparent PNG comes out with black corners.
  */
-export default function AppleIcon() {
-  const logo = logoDataUri();
+export default async function AppleIcon() {
+  const school = await getSiteSettings();
+  const logo = await logoDataUri(school.branding.logo);
 
   if (logo) {
     return new ImageResponse(
@@ -49,7 +53,7 @@ export default function AppleIcon() {
           letterSpacing: -3,
         }}
       >
-        EV
+        {schoolInitials(school.branding.shortName || school.name)}
       </div>
     ),
     size,

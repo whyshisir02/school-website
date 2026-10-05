@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { currentAccess } from "@/lib/auth";
+import { canAccess, routePermission } from "@/lib/permissions";
 
 // Renamed from `middleware.ts` for Next.js 16 (the `middleware` convention is
-// deprecated in favour of `proxy`). Runs on the Node.js runtime — fine here,
-// since `getToken` only reads and verifies the NextAuth JWT cookie.
+// deprecated in favour of `proxy`). Runs on the Node.js runtime — which is what
+// lets us verify the token AND check its version against the database here
+// (Prisma can't run on the edge). Verifying at this layer means a token that's
+// been invalidated ("log out all devices" / password change) is bounced to the
+// login screen before any admin page renders, not just blocked at the actions.
 export async function proxy(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const { pathname } = req.nextUrl;
@@ -12,14 +17,26 @@ export async function proxy(req: NextRequest) {
   const isLogin = pathname === "/admin/login";
   const isAdminArea = pathname.startsWith("/admin");
 
-  if (!token && isAdminArea && !isLogin) {
+  // A token is "authed" only if it exists AND its version still matches the
+  // account. Legacy tokens (no uid/ver, minted before versioning) count as
+  // stale, so the admin re-logs in once after this ships.
+  let authed = false;
+  let access = null;
+  if (token?.uid && typeof token.ver === "number") {
+    access = await currentAccess(token.uid as string);
+    authed = access !== null && access.tokenVersion === token.ver;
+  }
+
+  if (!authed && isAdminArea && !isLogin) {
     const loginUrl = new URL("/admin/login", req.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
   }
-  if (token && isLogin) {
+  if (authed && isLogin) {
     return NextResponse.redirect(new URL("/admin/dashboard", req.url));
   }
+  const permission = routePermission(pathname);
+  if (authed && access && permission && !canAccess(access, permission)) return NextResponse.redirect(new URL("/admin/access-denied", req.url));
   return NextResponse.next();
 }
 

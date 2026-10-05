@@ -1,13 +1,9 @@
 import { existsSync, readFileSync } from "fs";
+import { isSchoolUpload } from "./media-folder";
+import type { BrandAsset } from "./school-branding";
 import path from "path";
 
-/**
- * Optional real school logo. Mirrors the switch already used by the notice
- * letterhead in app/(public)/notices/[slug]/page.tsx — drop a file at
- * public/images/logo.png and the favicon, Apple touch icon and social-share
- * image all pick it up with no code change. Until then every one of them falls
- * back to the generated "EV" monogram.
- */
+/** Render only this school's saved logo; no implicit local fallback. */
 export const LOGO_PATH = path.join(process.cwd(), "public", "images", "logo.png");
 
 export function hasLogo(): boolean {
@@ -21,12 +17,21 @@ const MIME_BY_EXT: Record<string, string> = {
   ".webp": "image/webp",
 };
 
-/**
- * Same logo, but as a data URI. next/og renders in an isolated context that
- * cannot resolve a relative "/images/logo.png" path or read the filesystem, so
- * the bytes have to be inlined. Returns null when no logo exists.
- */
-export function logoDataUri(): string | null {
+/** Render only this school's saved logo; no implicit local fallback. */
+export async function logoDataUri(asset: BrandAsset | null): Promise<string | null> {
+  if (!asset) return null;
+  if (asset.publicId) {
+    try {
+      if (!isSchoolUpload(asset.url, asset.publicId, "branding", process.env.CLOUDINARY_CLOUD_NAME || "")) return null;
+      const response = await fetch(asset.url, { redirect: "error", signal: AbortSignal.timeout(5000), cache: "no-store" });
+      const mime = response.headers.get("content-type")?.split(";")[0];
+      if (!response.ok || !mime || !["image/png", "image/webp", "image/jpeg"].includes(mime)) return null;
+      const bytes = Buffer.from(await response.arrayBuffer());
+      if (bytes.length > 700_000) return null;
+      return `data:${mime};base64,${bytes.toString("base64")}`;
+    } catch { return null; }
+  }
+  if (asset.url !== "/images/logo.png") return null;
   if (!hasLogo()) return null;
   try {
     const bytes = readFileSync(LOGO_PATH);

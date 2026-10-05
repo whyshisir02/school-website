@@ -1,200 +1,74 @@
 "use client";
-
 import { useState } from "react";
 import Image from "next/image";
-import {
-  FiImage, FiTrash2, FiArrowUp, FiArrowDown, FiSave, FiLoader,
-} from "react-icons/fi";
-import {
-  saveHeroSlides,
-  type HeroSlideInput,
-} from "@/app/admin/(panel)/settings/content-actions";
+import { FiImage, FiTrash2, FiArrowUp, FiArrowDown } from "react-icons/fi";
+import { saveHeroSlides, type HeroSlideInput } from "@/app/admin/(panel)/settings/content-actions";
 import type { HeroSlideItem } from "@/lib/settings";
+import { compressPhoto } from "@/lib/compress-photo";
+import { uploadPhoto } from "@/lib/upload-photo";
+import SaveBar from "./SaveBar";
+import UnsavedChangesGuard from "./UnsavedChangesGuard";
+import MediaCleanupButton from "./MediaCleanupButton";
 
-/**
- * Manages the homepage hero slideshow photos. Uploads go straight to Cloudinary
- * via /api/admin/hero/upload and are appended locally; nothing is persisted (or
- * removed from the CDN) until Save, which sends the whole ordered list to
- * saveHeroSlides. Removing all slides falls back to the school.ts defaults.
- */
 export default function HeroSlidesAdmin({ slides: initial }: { slides: HeroSlideItem[] }) {
-  const [slides, setSlides] = useState<HeroSlideInput[]>(
-    initial.map((s) => ({
-      url: s.src,
-      alt: s.alt,
-      publicId: s.publicId,
-      objectPosition: s.objectPosition,
-    }))
-  );
+  const defaults = initial.map((s) => ({ url: s.src, alt: s.alt, publicId: s.publicId, objectPosition: s.objectPosition }));
+  const [baseline, setBaseline] = useState<HeroSlideInput[]>(defaults);
+  const [slides, setSlides] = useState<HeroSlideInput[]>(defaults);
   const [uploading, setUploading] = useState(false);
   const [pending, setPending] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
-
-  function dirty() {
-    setSaved(false);
-    setError("");
-  }
-
+  const [progress, setProgress] = useState("");
+  const [preview, setPreview] = useState(0);
+  const [mobile, setMobile] = useState(false);
+  const dirty = JSON.stringify(slides) !== JSON.stringify(baseline);
+  const busy = uploading || pending;
+  function update(index: number, patch: Partial<HeroSlideInput>) { setSlides((prev) => prev.map((s, i) => i === index ? { ...s, ...patch } : s)); setSaved(false); }
   async function onAdd(file: File) {
-    setUploading(true);
-    dirty();
+    if (slides.length >= 8 || busy) return;
+    setUploading(true); setError(""); setSaved(false);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/admin/hero/upload", { method: "POST", body: fd });
-      const data = await res.json().catch(() => null);
-      if (!res.ok || !data?.url) throw new Error(data?.error ?? "Upload failed");
-      setSlides((prev) => [...prev, { url: data.url, alt: "", publicId: data.publicId }]);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Upload failed");
-    } finally {
-      setUploading(false);
-    }
+      setProgress("Compressing photo?");
+      const fd = new FormData(); fd.append("file", await compressPhoto(file));
+      const data = await uploadPhoto("/api/admin/hero/upload", fd, (percent) => setProgress(`Uploading: ${percent}%${percent === 100 ? " ? saving?" : ""}`));
+      if (!data.url || !data.publicId) throw new Error("Upload failed. Please try again.");
+      setSlides((prev) => [...prev, { url: data.url!, alt: "", publicId: data.publicId! }]);
+      setProgress("Photo added. Save changes to publish it.");
+    } catch (e) { setError(e instanceof Error ? e.message : "Upload failed."); }
+    finally { setUploading(false); }
   }
-
-  function move(i: number, dir: -1 | 1) {
-    setSlides((prev) => {
-      const j = i + dir;
-      if (j < 0 || j >= prev.length) return prev;
-      const next = [...prev];
-      [next[i], next[j]] = [next[j], next[i]];
-      return next;
-    });
-    dirty();
-  }
-
-  function remove(i: number) {
-    setSlides((prev) => prev.filter((_, k) => k !== i));
-    dirty();
-  }
-
-  function setAlt(i: number, alt: string) {
-    setSlides((prev) => prev.map((s, k) => (k === i ? { ...s, alt } : s)));
-    dirty();
-  }
-
   async function onSave() {
-    setPending(true);
-    dirty();
-    const res = await saveHeroSlides(slides);
-    setPending(false);
-    if (res.ok) setSaved(true);
-    else setError(res.error ?? "Could not save. Please try again.");
+    if (busy || !dirty) return;
+    setPending(true); setError("");
+    try { const result = await saveHeroSlides(slides); if (!result.ok) throw new Error(result.error); setBaseline(slides); setSaved(true); }
+    catch (e) { setError(e instanceof Error ? e.message : "Could not save. Please try again."); }
+    finally { setPending(false); }
   }
-
-  return (
-    <div className="mt-6 space-y-4 rounded-xl bg-white p-6 shadow-sm">
-      <div>
-        <h2 className="font-heading text-base font-bold text-navy">Hero photos</h2>
-        <p className="mt-1 text-sm text-slate-500">
-          The crossfading photos behind the homepage headline. Add a few bright,
-          wide shots (JPEG/PNG/WebP, under 5&nbsp;MB). Keep the main subject toward
-          the right of the frame — the left is covered by the headline. Remove all
-          photos to fall back to the built-in defaults.
-        </p>
-      </div>
-
-      {slides.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-400">
-          No photos yet — the homepage will use the built-in defaults until you add some.
-        </p>
-      ) : (
-        <ul className="space-y-3">
-          {slides.map((s, i) => (
-            <li
-              key={`${s.url}-${i}`}
-              className="flex items-start gap-3 rounded-lg border border-slate-200 p-3"
-            >
-              <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-md bg-slate-100">
-                <Image
-                  src={s.url}
-                  alt={s.alt || "Hero photo"}
-                  fill
-                  sizes="96px"
-                  className="object-cover"
-                  style={s.objectPosition ? { objectPosition: s.objectPosition } : undefined}
-                />
+  const selected = slides[Math.min(preview, Math.max(0, slides.length - 1))];
+  return <div className="mt-6 space-y-6">
+    <UnsavedChangesGuard dirty={dirty || uploading} />
+    <form onSubmit={(e) => { e.preventDefault(); void onSave(); }} className="space-y-6">
+      <section className="rounded-2xl border border-slate-200 bg-white p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-heading text-lg font-bold">Homepage photos</h2><p className="mt-1 text-sm text-slate-500">Choose up to eight photos. Save changes to publish your selection.</p></div>
+          <label className={`flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium ${busy || slides.length >= 8 ? "opacity-40" : "cursor-pointer hover:border-gold"}`}><FiImage /> {uploading ? "Adding?" : "Add photo"}<input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={busy || slides.length >= 8} onChange={(e) => { const file = e.target.files?.[0]; if (file) void onAdd(file); e.target.value = ""; }} /></label>
+        </div>
+        <p className="mt-3 text-xs text-slate-500">JPEG/PNG/WebP up to 20 MB, automatically compressed to 700 KB or less. Unpublished uploads expire after 24 hours.</p>
+        {progress && <p role="status" className="mt-3 text-sm">{progress}</p>}
+        <fieldset disabled={busy} className="mt-5 space-y-4">
+          {slides.map((slide, i) => <div key={slide.publicId || slide.url} className="rounded-xl border border-slate-200 p-4">
+            <div className="flex items-start gap-4"><button type="button" onClick={() => setPreview(i)} aria-label={`Preview photo ${i + 1}`} className="relative h-20 w-28 shrink-0 overflow-hidden rounded-lg"><Image src={slide.url} alt={slide.alt || "Homepage photo"} fill sizes="112px" className="object-cover" style={{ objectPosition: slide.objectPosition }} /></button>
+              <div className="min-w-0 flex-1"><label className="block text-xs font-semibold text-slate-500">Photo description<input value={slide.alt} onChange={(e) => update(i, { alt: e.target.value })} maxLength={200} placeholder="Students at morning assembly" className="mt-1 w-full rounded-lg border px-3 py-2 text-sm text-navy" /></label>
+                <label className="mt-3 block text-xs font-semibold text-slate-500">Keep this part visible<select value={slide.objectPosition || "center center"} onChange={(e) => update(i, { objectPosition: e.target.value })} className="mt-1 w-full rounded-lg border px-3 py-2 text-sm text-navy"><option value="center center">Center</option><option value="left center">Left</option><option value="right center">Right</option><option value="center top">Top</option><option value="center 38%">Upper center</option></select></label>
               </div>
-
-              <label className="min-w-0 flex-1">
-                <span className="text-xs font-medium text-slate-500">
-                  Description (for accessibility &amp; SEO)
-                </span>
-                <input
-                  value={s.alt}
-                  onChange={(e) => setAlt(i, e.target.value)}
-                  maxLength={200}
-                  placeholder="e.g. Students at morning assembly in front of the school"
-                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-gold"
-                />
-              </label>
-
-              <div className="flex shrink-0 items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => move(i, -1)}
-                  disabled={i === 0}
-                  aria-label="Move up"
-                  title="Move up"
-                  className="rounded p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-30"
-                >
-                  <FiArrowUp size={15} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => move(i, 1)}
-                  disabled={i === slides.length - 1}
-                  aria-label="Move down"
-                  title="Move down"
-                  className="rounded p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-30"
-                >
-                  <FiArrowDown size={15} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => remove(i)}
-                  aria-label="Remove photo"
-                  title="Remove photo"
-                  className="rounded p-2 text-red-500 hover:bg-red-50"
-                >
-                  <FiTrash2 size={15} />
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <div className="flex flex-wrap items-center gap-4">
-        <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 hover:border-gold">
-          {uploading ? <FiLoader className="animate-spin" /> : <FiImage />}
-          {uploading ? "Uploading…" : "Add photo"}
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            className="hidden"
-            disabled={uploading}
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) onAdd(f);
-              e.target.value = "";
-            }}
-          />
-        </label>
-
-        <button
-          type="button"
-          onClick={onSave}
-          disabled={pending || uploading}
-          className="btn-primary !py-2.5 text-sm disabled:opacity-60"
-        >
-          <FiSave /> {pending ? "Saving…" : "Save Photos"}
-        </button>
-
-        {saved && <p className="text-sm font-medium text-green-600">Photos saved.</p>}
-        {error && <p className="text-sm font-medium text-red-600">{error}</p>}
-      </div>
-    </div>
-  );
+            </div>
+            <div className="mt-3 flex items-center justify-between"><span className="text-xs text-slate-400">Photo {i + 1}</span><div className="flex gap-1">{[-1, 1].map((dir) => <button key={dir} type="button" aria-label={dir === -1 ? "Move photo up" : "Move photo down"} disabled={i + dir < 0 || i + dir >= slides.length} onClick={() => { const next = [...slides]; [next[i], next[i + dir]] = [next[i + dir], next[i]]; setSlides(next); }} className="rounded-lg p-3 hover:bg-slate-50 disabled:opacity-30">{dir === -1 ? <FiArrowUp /> : <FiArrowDown />}</button>)}<button type="button" onClick={() => setSlides((prev) => prev.filter((_, index) => index !== i))} aria-label="Remove photo" className="rounded-lg p-3 text-red-600 hover:bg-red-50"><FiTrash2 /></button></div></div>
+          </div>)}
+        </fieldset>
+        {!slides.length && <p className="mt-5 text-sm text-slate-500">No photos selected. Saving will restore the built-in school photos.</p>}
+      </section>
+      {selected && <section className="rounded-2xl border border-slate-200 bg-white p-6"><div className="mb-4 flex items-center justify-between"><h2 className="font-semibold">Crop preview</h2><div className="flex gap-2">{[false, true].map((value) => <button key={String(value)} type="button" aria-pressed={mobile === value} onClick={() => setMobile(value)} className={`rounded-lg px-3 py-2 text-xs ${mobile === value ? "bg-navy text-white" : "bg-slate-50"}`}>{value ? "Mobile" : "Desktop"}</button>)}</div></div><div className={`relative mx-auto overflow-hidden rounded-xl ${mobile ? "aspect-[3/4] max-w-xs" : "aspect-[16/7]"}`}><Image src={selected.url} alt={selected.alt || "Homepage crop preview"} fill sizes={mobile ? "320px" : "(max-width: 1024px) 100vw, 900px"} className="object-cover" style={{ objectPosition: selected.objectPosition }} /></div><p className="mt-3 text-xs text-slate-500">Preview shows the photo crop. The public homepage adds the school headline and overlay.</p></section>}
+      <SaveBar pending={busy} dirty={dirty} saved={saved} error={error} label="Save photos" onCancel={() => { setSlides(baseline); setError(""); setProgress(""); setSaved(false); }} />
+    </form>
+    <MediaCleanupButton />
+  </div>;
 }

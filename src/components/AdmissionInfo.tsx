@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { FaGraduationCap } from "react-icons/fa";
 import { FiArrowRight } from "react-icons/fi";
-import { SCHOOL, currentAcademicYearBS } from "@/lib/school";
+import { currentAcademicYearBS } from "@/lib/school";
 
 /**
  * The single source of truth for admission messaging, rendered on /contact
@@ -58,7 +58,8 @@ export function AdmissionCompact() {
   );
 }
 
-export default function AdmissionInfo() {
+export default async function AdmissionInfo() {
+  const school = await getSiteSettings();
   const year = currentAcademicYearBS();
   return (
     <div id="admission" className="scroll-mt-28 rounded-xl bg-navy p-6 text-white sm:p-8">
@@ -76,9 +77,9 @@ export default function AdmissionInfo() {
       </h2>
       <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-200">
         There is no online application form. Admission for the {year} academic year
-        takes place at the school office in {SCHOOL.address.split(",")[0]} — send us a
+        takes place at the school office in {school.address.split(",")[0]} — send us a
         message below, call us, or simply visit us during working hours
-        (Sun – Fri, 10 AM – 4 PM). Seats in each class are limited, so we recommend
+        {school.branding.hours ? `(${school.branding.hours})` : ""}. Seats in each class are limited, so we recommend
         enquiring early.
       </p>
 
@@ -115,10 +116,10 @@ export default function AdmissionInfo() {
 
       <div className="mt-6 flex flex-wrap gap-3">
         <a
-          href={`tel:${SCHOOL.phone}`}
+          href={`tel:${school.phone}`}
           className="inline-flex items-center gap-2 rounded-full bg-gold px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-gold-dark"
         >
-          Call {SCHOOL.phone}
+          Call {school.phone}
         </a>
         <a
           href="#message-form"
@@ -130,3 +131,4 @@ export default function AdmissionInfo() {
     </div>
   );
 }
+import { getSiteSettings } from "@/lib/settings";

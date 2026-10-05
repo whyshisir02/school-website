@@ -23,19 +23,33 @@ export default function HeroSlideshow({
   background?: boolean;
 }) {
   const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  const [prepared, setPrepared] = useState<Set<number>>(new Set([0]));
+  const [loaded, setLoaded] = useState<Set<number>>(new Set());
+  const [visibleIndex, setVisibleIndex] = useState(0);
   const count = slides.length;
+  const currentReady = loaded.has(index);
 
-  const go = useCallback(
-    (dir: 1 | -1) => setIndex((i) => (i + dir + count) % count),
-    [count]
-  );
+  const select = useCallback((next: number) => { setPrepared((prev) => new Set([...prev, next])); setIndex(next); }, []);
+  const go = useCallback((dir: 1 | -1) => select((index + dir + count) % count), [select, index, count]);
+  useEffect(() => {
+    const visibility = () => setHidden(document.hidden);
+    visibility();
+    document.addEventListener("visibilitychange", visibility);
+    return () => document.removeEventListener("visibilitychange", visibility);
+  }, []);
+  useEffect(() => { if (loaded.has(index)) setVisibleIndex(index); }, [index, loaded]);
+  useEffect(() => {
+    if (!currentReady || count <= 1 || hidden) return;
+    const timer = setTimeout(() => setPrepared((prev) => new Set([...prev, (index + 1) % count])), 1200);
+    return () => clearTimeout(timer);
+  }, [index, currentReady, count, hidden]);
 
   useEffect(() => {
-    if (paused || count <= 1) return;
-    const t = setInterval(() => setIndex((i) => (i + 1) % count), AUTOPLAY_MS);
+    if (count <= 1 || hidden || !currentReady) return;
+    const t = setInterval(() => go(1), AUTOPLAY_MS);
     return () => clearInterval(t);
-  }, [paused, count]);
+  }, [count, hidden, currentReady, go]);
 
   const touchX = useRef<number | null>(null);
 
@@ -43,11 +57,9 @@ export default function HeroSlideshow({
 
   return (
     <div
-      className={`absolute inset-0 overflow-hidden ${
-        background ? "" : "relative h-full w-full rounded-xl shadow-lg"
+      className={`overflow-hidden ${
+        background ? "absolute inset-0" : "relative h-full w-full rounded-xl shadow-lg"
       }`}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
       onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
       onTouchEnd={(e) => {
         if (touchX.current === null) return;
@@ -58,22 +70,27 @@ export default function HeroSlideshow({
       aria-roledescription="carousel"
       aria-label="School photos"
     >
-      {slides.map((slide, i) => (
+      {slides.map((slide, i) => prepared.has(i) && (
         <Image
           key={slide.src}
           src={slide.src}
           alt={slide.alt}
           fill
           priority={i === 0}
+          loading="eager"
+          onLoad={() => setLoaded((prev) => new Set([...prev, i]))}
+          aria-hidden={i !== visibleIndex}
           sizes={background ? "100vw" : "(max-width: 1024px) 100vw, 40vw"}
           style={slide.objectPosition ? { objectPosition: slide.objectPosition } : undefined}
-          className={`object-cover transition-opacity duration-700 ${
-            i === index ? "opacity-100" : "opacity-0"
+          className={`hero-slide object-cover transition-opacity duration-700 ${
+            i === visibleIndex ? "opacity-100" : "opacity-0"
           }`}
         />
       ))}
 
-      {/* Mobile: darken bottom so dots stay readable over bright photos */}
+      {background && <div aria-hidden="true" className="hero-overlay pointer-events-none absolute inset-0" />}
+
+      {/* Darken the controls over bright photos. */}
       {background && (
         <div
           aria-hidden="true"
@@ -81,49 +98,15 @@ export default function HeroSlideshow({
         />
       )}
 
-      {/* Arrows (desktop) */}
-      {count > 1 && (
-        <>
-          <button
-            type="button"
-            onClick={() => go(-1)}
-            aria-label="Previous photo"
-            className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-navy/60 p-2 text-white backdrop-blur transition hover:bg-navy"
-          >
-            <FiChevronLeft size={18} />
-          </button>
-          <button
-            type="button"
-            onClick={() => go(1)}
-            aria-label="Next photo"
-            className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-navy/60 p-2 text-white backdrop-blur transition hover:bg-navy"
-          >
-            <FiChevronRight size={18} />
-          </button>
-        </>
-      )}
-
-      {/* Dots */}
-      {count > 1 && (
-        <div
-          className={`absolute bottom-3 z-10 flex gap-2 ${
-            background ? "right-6" : "left-1/2 -translate-x-1/2"
-          }`}
-        >
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setIndex(i)}
-              aria-label={`Go to photo ${i + 1}`}
-              aria-current={i === index}
-              className={`h-2 rounded-full transition-all ${
-                i === index ? "w-6 bg-gold" : "w-2 bg-white/70 hover:bg-white"
-              }`}
-            />
-          ))}
+      {count > 1 && <>
+        <button type="button" onClick={() => go(-1)} aria-label="Previous photo" className="absolute left-3 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-navy/60 text-white backdrop-blur transition hover:bg-navy"><FiChevronLeft size={20} /></button>
+        <button type="button" onClick={() => go(1)} aria-label="Next photo" className="absolute right-3 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-navy/60 text-white backdrop-blur transition hover:bg-navy"><FiChevronRight size={20} /></button>
+        <div className="absolute inset-x-3 bottom-3 z-20 flex flex-wrap items-center justify-end gap-1 text-white sm:right-6">
+          {slides.map((_, i) => <button key={i} type="button" onClick={() => select(i)} aria-label={`Go to photo ${i + 1}`} aria-current={i === visibleIndex} className="flex h-11 w-11 items-center justify-center rounded-full">
+            <span aria-hidden="true" className={`h-2 rounded-full transition-all ${i === visibleIndex ? "w-6 bg-gold" : "w-2 bg-white/70"}`} />
+          </button>)}
         </div>
-      )}
+      </>}
     </div>
   );
 }

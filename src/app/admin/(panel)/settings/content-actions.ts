@@ -1,17 +1,11 @@
 "use server";
+import { auditTransaction } from "@/lib/audit";
 
 import { revalidatePath } from "next/cache";
-import { v2 as cloudinary } from "cloudinary";
+import { cleanUnusedMedia } from "@/lib/media-cleanup";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { sanitizeNoticeHtml } from "@/lib/sanitize";
-import { SCHOOL } from "@/lib/school";
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
 
 export type SaveMessagesResult = { ok: boolean; error?: string };
 
@@ -23,8 +17,9 @@ export type SaveMessagesResult = { ok: boolean; error?: string };
  * Message HTML is run through the same sanitizer as notices before storing.
  */
 export async function saveMessages(formData: FormData): Promise<SaveMessagesResult> {
-  await requireAdmin();
+  const session = await requireAdmin("MESSAGES");
 
+  if (!formData.has("principalMessageHtml") || !formData.has("chairmanMessageHtml")) return { ok: false, error: "The editors are still loading. Please wait a moment and save again." };
   const principalExcerpt = String(formData.get("principalExcerpt") ?? "").trim().slice(0, 600);
   const principalMessageHtml = sanitizeNoticeHtml(
     String(formData.get("principalMessageHtml") ?? "").trim()
@@ -38,22 +33,22 @@ export async function saveMessages(formData: FormData): Promise<SaveMessagesResu
   const principal = { excerpt: principalExcerpt, messageHtml: principalMessageHtml };
   const chairman = { name: chairmanName, title: chairmanTitle, messageHtml: chairmanMessageHtml };
 
-  await prisma.settings.upsert({
+  await auditTransaction(session, { action: "MESSAGES_SAVED", targetId: "main" }, (tx) => tx.settings.upsert({
     where: { id: "main" },
     // If no settings row exists yet, seed the required contact fields from
     // school.ts so the row is valid; getSiteSettings() still falls back to
     // those same defaults, so nothing visibly changes.
     create: {
       id: "main",
-      schoolName: SCHOOL.name,
-      address: SCHOOL.address,
-      phone: SCHOOL.phone,
-      email: SCHOOL.email,
+      schoolName: "School",
+      address: "",
+      phone: "",
+      email: "",
       principal,
       chairman,
     },
     update: { principal, chairman },
-  });
+  }));
 
   revalidatePath("/", "layout");
   revalidatePath("/about");
@@ -82,7 +77,7 @@ const MAX_HERO_SLIDES = 8;
  * asset. Local /public fallback slides have no publicId and are left untouched.
  */
 export async function saveHeroSlides(slides: HeroSlideInput[]): Promise<SaveMessagesResult> {
-  await requireAdmin();
+  const session = await requireAdmin("HERO");
 
   const clean = (Array.isArray(slides) ? slides : [])
     .map((s) => ({
@@ -95,41 +90,31 @@ export async function saveHeroSlides(slides: HeroSlideInput[]): Promise<SaveMess
     .filter((s) => /^https:\/\//i.test(s.url) || s.url.startsWith("/"))
     .slice(0, MAX_HERO_SLIDES);
 
-  // Delete Cloudinary assets for slides that were removed from the list.
-  const existing = await prisma.settings
-    .findUnique({ where: { id: "main" } })
-    .catch(() => null);
-  const prevSlides = Array.isArray(existing?.heroSlides) ? existing.heroSlides : [];
-  const keptIds = new Set(
-    clean.map((s) => s.publicId).filter((id): id is string => !!id)
-  );
-  const removedIds = prevSlides
-    .map((s) =>
-      s && typeof s === "object" && !Array.isArray(s)
-        ? (s as Record<string, unknown>).publicId
-        : undefined
-    )
-    .filter((id): id is string => typeof id === "string" && !keptIds.has(id));
-  for (const id of removedIds) {
-    try {
-      await cloudinary.uploader.destroy(id);
-    } catch {
-      // ignore CDN deletion failure — the DB list is the source of truth
+  if (slides.length > MAX_HERO_SLIDES) return { ok: false, error: "Choose up to eight homepage photos." };
+  await auditTransaction(session, { action: "HERO_SAVED", targetId: "main", details: { count: clean.length } }, async (tx) => {
+    const existing = await tx.settings.findUnique({ where: { id: "main" } });
+    const prev = Array.isArray(existing?.heroSlides) ? existing.heroSlides : [];
+    const previousIds = new Set(prev.flatMap((slide) => slide && typeof slide === "object" && !Array.isArray(slide) && typeof slide.publicId === "string" ? [slide.publicId] : []));
+    const newIds = clean.flatMap((slide) => slide.publicId && !previousIds.has(slide.publicId) ? [slide.publicId] : []);
+    if (newIds.length) {
+      const pending = await tx.mediaCleanup.findMany({ where: { publicId: { in: newIds }, notBefore: { gt: new Date() } } });
+      if (pending.length !== newIds.length) throw new Error("A photo has expired. Remove it and upload it again before saving.");
     }
-  }
-
-  await prisma.settings.upsert({
-    where: { id: "main" },
-    create: {
-      id: "main",
-      schoolName: SCHOOL.name,
-      address: SCHOOL.address,
-      phone: SCHOOL.phone,
-      email: SCHOOL.email,
-      heroSlides: clean,
-    },
-    update: { heroSlides: clean },
+    const kept = clean.flatMap((slide) => slide.publicId ? [slide.publicId] : []);
+    await tx.settings.upsert({
+      where: { id: "main" },
+      create: { id: "main", schoolName: "School", address: "", phone: "", email: "", heroSlides: clean },
+      update: { heroSlides: clean },
+    });
+    await tx.mediaCleanup.deleteMany({ where: { publicId: { in: kept } } });
+    for (const slide of prev) {
+      if (slide && typeof slide === "object" && !Array.isArray(slide) && typeof slide.publicId === "string" && !kept.includes(slide.publicId)) {
+        await tx.mediaCleanup.upsert({ where: { publicId: slide.publicId }, create: { publicId: slide.publicId }, update: { notBefore: new Date() } });
+      }
+    }
   });
+  // Commit the published list first; failed deletions stay queued for retry.
+  await cleanUnusedMedia().catch(() => null);
 
   revalidatePath("/", "layout");
   revalidatePath("/about");
